@@ -114,7 +114,16 @@ local Drag = function(Canvas)
 			Canvas.Position = UDim2.new(StartPosition.X.Scale, StartPosition.X.Offset + delta.X, StartPosition.Y.Scale, StartPosition.Y.Offset + delta.Y)
 		end
 
-		Connect(Canvas.InputBegan, function(Input)
+		-- Create larger drag area for mobile
+		local DragArea = Instance.new("Frame")
+		DragArea.Name = "DragArea"
+		DragArea.Size = UDim2.new(1, 0, 0, 60) -- Larger drag area
+		DragArea.Position = UDim2.new(0, 0, 0, 0)
+		DragArea.BackgroundTransparency = 1
+		DragArea.ZIndex = 100
+		DragArea.Parent = Canvas
+
+		Connect(DragArea.InputBegan, function(Input)
 			if Input.UserInputType == Enum.UserInputType.MouseButton1 or Input.UserInputType == Enum.UserInputType.Touch and not Type then
 				Dragging = true
 				Start = Input.Position
@@ -128,7 +137,7 @@ local Drag = function(Canvas)
 			end
 		end)
 
-		Connect(Canvas.InputChanged, function(Input)
+		Connect(DragArea.InputChanged, function(Input)
 			if Input.UserInputType == Enum.UserInputType.MouseMovement or Input.UserInputType == Enum.UserInputType.Touch and not Type then
 				DragInput = Input
 			end
@@ -237,16 +246,17 @@ local function CreatePurpleGradient(Window)
 	GradientFrame.Name = "PurpleGradient"
 	GradientFrame.Size = UDim2.new(1, 0, 1, 0)
 	GradientFrame.Position = UDim2.new(0, 0, 0, 0)
-	GradientFrame.BackgroundTransparency = 1
+	GradientFrame.BackgroundColor3 = Theme.PurpleGradient
+	GradientFrame.BackgroundTransparency = 0.3 -- Make it more visible
 	GradientFrame.ZIndex = 1
 	GradientFrame.Parent = Window
 	
 	local UIGradient = Instance.new("UIGradient")
 	UIGradient.Transparency = NumberSequence.new({
-		NumberSequenceKeypoint.new(0, 1),
-		NumberSequenceKeypoint.new(0.27, 0.85),
-		NumberSequenceKeypoint.new(0.73, 0.7),
-		NumberSequenceKeypoint.new(0.83, 0.9),
+		NumberSequenceKeypoint.new(0, 0.9), -- Start more visible
+		NumberSequenceKeypoint.new(0.27, 0.7),
+		NumberSequenceKeypoint.new(0.73, 0.4),
+		NumberSequenceKeypoint.new(0.83, 0.8),
 		NumberSequenceKeypoint.new(1, 1)
 	})
 	UIGradient.Color = ColorSequence.new({
@@ -255,8 +265,6 @@ local function CreatePurpleGradient(Window)
 	})
 	UIGradient.Rotation = 180
 	UIGradient.Parent = GradientFrame
-	
-	GradientFrame.BackgroundColor3 = Theme.PurpleGradient
 	
 	return GradientFrame
 end
@@ -278,6 +286,46 @@ local function CreateBrandingText(Window)
 	BrandingLabel.Parent = Window
 	
 	return BrandingLabel
+end
+
+--// Function to create mobile minimize button
+local function CreateMobileMinimizeButton(Window, CloseFunction)
+	local MobileButton = Instance.new("TextButton")
+	MobileButton.Name = "MobileMinimize"
+	MobileButton.Size = UDim2.new(0, 40, 0, 40)
+	MobileButton.Position = UDim2.new(1, -50, 0, 10)
+	MobileButton.BackgroundColor3 = Theme.Component
+	MobileButton.BackgroundTransparency = 0.3
+	MobileButton.Text = "—"
+	MobileButton.TextColor3 = Theme.Title
+	MobileButton.TextSize = 20
+	MobileButton.Font = Enum.Font.GothamBold
+	MobileButton.ZIndex = 101
+	MobileButton.Parent = Window
+	
+	-- Add corner radius
+	local UICorner = Instance.new("UICorner")
+	UICorner.CornerRadius = UDim.new(0, 8)
+	UICorner.Parent = MobileButton
+	
+	-- Add stroke
+	local UIStroke = Instance.new("UIStroke")
+	UIStroke.Color = Theme.Outline
+	UIStroke.Thickness = 1
+	UIStroke.Parent = MobileButton
+	
+	-- Animation
+	Connect(MobileButton.MouseButton1Click, CloseFunction)
+	
+	Connect(MobileButton.InputBegan, function()
+		Tween(MobileButton, 0.2, { BackgroundTransparency = 0.1 })
+	end)
+	
+	Connect(MobileButton.InputEnded, function()
+		Tween(MobileButton, 0.2, { BackgroundTransparency = 0.3 })
+	end)
+	
+	return MobileButton
 end
 
 --// Animations [Window]
@@ -401,6 +449,9 @@ function Library:CreateWindow(Settings: { Title: string, Size: UDim2, Transparen
 		end
 	end
 
+	-- Add mobile minimize button
+	CreateMobileMinimizeButton(Window, Close)
+
 	for Index, Button in next, Sidebar.Top.Buttons:GetChildren() do
 		if Button:IsA("TextButton") then
 			local Name = Button.Name
@@ -420,7 +471,9 @@ function Library:CreateWindow(Settings: { Title: string, Size: UDim2, Transparen
 				elseif Name == "Minimize" then
 					Opened = false
 					Window.Visible = false
-					Blurs[Settings.Title].root.Parent = nil
+					if BlurEnabled then
+						Blurs[Settings.Title].root.Parent = nil
+					end
 				end
 			end)
 		end
