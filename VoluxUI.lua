@@ -1,6 +1,6 @@
 --[[
 	User Interface Library
-	Made by VoluxUI
+	Made by VoluxUI V2
 ]]
 
 --// Connections
