@@ -1,6 +1,6 @@
 --[[
 	User Interface Library
-	Made by VoluxUI V2
+	Made by VoluxUI V2.1
 ]]
 
 --// Connections
@@ -240,20 +240,20 @@ local StoredInfo = {
 	["Tabs"] = {}
 };
 
---// Function to create purple gradient overlay
+--// Function to create purple gradient overlay with 47 degree angle
 local function CreatePurpleGradient(Window)
 	local GradientFrame = Instance.new("Frame")
 	GradientFrame.Name = "PurpleGradient"
 	GradientFrame.Size = UDim2.new(1, 0, 1, 0)
 	GradientFrame.Position = UDim2.new(0, 0, 0, 0)
 	GradientFrame.BackgroundColor3 = Theme.PurpleGradient
-	GradientFrame.BackgroundTransparency = 0.3 -- Make it more visible
+	GradientFrame.BackgroundTransparency = 0.3
 	GradientFrame.ZIndex = 1
 	GradientFrame.Parent = Window
 	
 	local UIGradient = Instance.new("UIGradient")
 	UIGradient.Transparency = NumberSequence.new({
-		NumberSequenceKeypoint.new(0, 0.9), -- Start more visible
+		NumberSequenceKeypoint.new(0, 0.9),
 		NumberSequenceKeypoint.new(0.27, 0.7),
 		NumberSequenceKeypoint.new(0.73, 0.4),
 		NumberSequenceKeypoint.new(0.83, 0.8),
@@ -263,7 +263,7 @@ local function CreatePurpleGradient(Window)
 		ColorSequenceKeypoint.new(0, Theme.PurpleGradient),
 		ColorSequenceKeypoint.new(1, Theme.PurpleGradient)
 	})
-	UIGradient.Rotation = 180
+	UIGradient.Rotation = 47 -- 47 degree angle
 	UIGradient.Parent = GradientFrame
 	
 	return GradientFrame
@@ -286,6 +286,304 @@ local function CreateBrandingText(Window)
 	BrandingLabel.Parent = Window
 	
 	return BrandingLabel
+end
+
+--// Function to create smaller, better positioned close button
+local function CreateImprovedCloseButton(Window, CloseFunction)
+	local CloseButton = Instance.new("TextButton")
+	CloseButton.Name = "ImprovedClose"
+	CloseButton.Size = UDim2.new(0, 25, 0, 25) -- Smaller size
+	CloseButton.Position = UDim2.new(1, -35, 0, 10) -- Better positioning
+	CloseButton.BackgroundColor3 = Color3.fromRGB(220, 53, 69)
+	CloseButton.BackgroundTransparency = 0.1
+	CloseButton.Text = "×"
+	CloseButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+	CloseButton.TextSize = 16
+	CloseButton.Font = Enum.Font.GothamBold
+	CloseButton.ZIndex = 102
+	CloseButton.Parent = Window
+	
+	-- Add corner radius
+	local UICorner = Instance.new("UICorner")
+	UICorner.CornerRadius = UDim.new(0, 6)
+	UICorner.Parent = CloseButton
+	
+	-- Add stroke
+	local UIStroke = Instance.new("UIStroke")
+	UIStroke.Color = Color3.fromRGB(180, 40, 55)
+	UIStroke.Thickness = 1
+	UIStroke.Parent = CloseButton
+	
+	-- Hover animations
+	Connect(CloseButton.MouseEnter, function()
+		Tween(CloseButton, 0.2, { BackgroundColor3 = Color3.fromRGB(240, 73, 89) })
+		Tween(CloseButton, 0.2, { Size = UDim2.new(0, 27, 0, 27) })
+	end)
+	
+	Connect(CloseButton.MouseLeave, function()
+		Tween(CloseButton, 0.2, { BackgroundColor3 = Color3.fromRGB(220, 53, 69) })
+		Tween(CloseButton, 0.2, { Size = UDim2.new(0, 25, 0, 25) })
+	end)
+	
+	Connect(CloseButton.MouseButton1Click, CloseFunction)
+	
+	return CloseButton
+end
+
+--// Function to create floating open button
+local function CreateFloatingOpenButton(OpenFunction)
+	local FloatingButton = Instance.new("TextButton")
+	FloatingButton.Name = "FloatingOpenButton"
+	FloatingButton.Size = UDim2.new(0, 150, 0, 40)
+	FloatingButton.Position = UDim2.new(0.5, -75, 0, 10) -- Top center of screen
+	FloatingButton.BackgroundColor3 = Theme.Primary
+	FloatingButton.BackgroundTransparency = 0.1
+	FloatingButton.Text = "Open VoluxUI 2"
+	FloatingButton.TextColor3 = Theme.Title
+	FloatingButton.TextSize = 12
+	FloatingButton.Font = Enum.Font.GothamBold
+	FloatingButton.ZIndex = 1000
+	FloatingButton.Visible = false
+	
+	-- Add corner radius for circular look
+	local UICorner = Instance.new("UICorner")
+	UICorner.CornerRadius = UDim.new(0, 20)
+	UICorner.Parent = FloatingButton
+	
+	-- Add stroke
+	local UIStroke = Instance.new("UIStroke")
+	UIStroke.Color = Theme.Outline
+	UIStroke.Thickness = 2
+	UIStroke.Parent = FloatingButton
+	
+	-- Add gradient
+	local UIGradient = Instance.new("UIGradient")
+	UIGradient.Color = ColorSequence.new({
+		ColorSequenceKeypoint.new(0, Theme.PurpleGradient),
+		ColorSequenceKeypoint.new(1, Theme.Primary)
+	})
+	UIGradient.Rotation = 47
+	UIGradient.Parent = FloatingButton
+	
+	-- Parent to screen
+	FloatingButton.Parent = Screen
+	
+	-- Hover animations
+	Connect(FloatingButton.MouseEnter, function()
+		Tween(FloatingButton, 0.3, { Size = UDim2.new(0, 160, 0, 45) })
+		Tween(FloatingButton, 0.3, { BackgroundTransparency = 0.05 })
+	end)
+	
+	Connect(FloatingButton.MouseLeave, function()
+		Tween(FloatingButton, 0.3, { Size = UDim2.new(0, 150, 0, 40) })
+		Tween(FloatingButton, 0.3, { BackgroundTransparency = 0.1 })
+	end)
+	
+	Connect(FloatingButton.MouseButton1Click, OpenFunction)
+	
+	return FloatingButton
+end
+
+--// Function to create Key System UI
+local function CreateKeySystemUI(Settings, OnSuccess)
+	local KeyFrame = Instance.new("CanvasGroup")
+	KeyFrame.Name = "KeySystem"
+	KeyFrame.Size = UDim2.new(0, 400, 0, 250)
+	KeyFrame.Position = UDim2.new(0.5, -200, 0.5, -125)
+	KeyFrame.BackgroundColor3 = Theme.Primary
+	KeyFrame.GroupTransparency = 1
+	KeyFrame.ZIndex = 1000
+	KeyFrame.Parent = Screen
+	
+	-- Add corner radius
+	local UICorner = Instance.new("UICorner")
+	UICorner.CornerRadius = UDim.new(0, 12)
+	UICorner.Parent = KeyFrame
+	
+	-- Add stroke
+	local UIStroke = Instance.new("UIStroke")
+	UIStroke.Color = Theme.Shadow
+	UIStroke.Thickness = 2
+	UIStroke.Parent = KeyFrame
+	
+	-- Add gradient
+	CreatePurpleGradient(KeyFrame)
+	
+	-- Title
+	local Title = Instance.new("TextLabel")
+	Title.Name = "Title"
+	Title.Size = UDim2.new(1, -40, 0, 50)
+	Title.Position = UDim2.new(0, 20, 0, 20)
+	Title.BackgroundTransparency = 1
+	Title.Text = "Key System - " .. (Settings.Title or "VoluxUI")
+	Title.TextColor3 = Theme.Title
+	Title.TextSize = 18
+	Title.Font = Enum.Font.GothamBold
+	Title.TextXAlignment = Enum.TextXAlignment.Left
+	Title.ZIndex = 1001
+	Title.Parent = KeyFrame
+	
+	-- Description
+	local Description = Instance.new("TextLabel")
+	Description.Name = "Description"
+	Description.Size = UDim2.new(1, -40, 0, 30)
+	Description.Position = UDim2.new(0, 20, 0, 70)
+	Description.BackgroundTransparency = 1
+	Description.Text = "Please enter the key to access the interface"
+	Description.TextColor3 = Theme.Description
+	Description.TextSize = 12
+	Description.Font = Enum.Font.Gotham
+	Description.TextXAlignment = Enum.TextXAlignment.Left
+	Description.ZIndex = 1001
+	Description.Parent = KeyFrame
+	
+	-- Key Input
+	local KeyInput = Instance.new("TextBox")
+	KeyInput.Name = "KeyInput"
+	KeyInput.Size = UDim2.new(1, -40, 0, 35)
+	KeyInput.Position = UDim2.new(0, 20, 0, 110)
+	KeyInput.BackgroundColor3 = Theme.Component
+	KeyInput.Text = ""
+	KeyInput.PlaceholderText = "Enter key here..."
+	KeyInput.TextColor3 = Theme.Title
+	KeyInput.PlaceholderColor3 = Theme.Description
+	KeyInput.TextSize = 14
+	KeyInput.Font = Enum.Font.Gotham
+	KeyInput.ZIndex = 1001
+	KeyInput.Parent = KeyFrame
+	
+	-- Key Input corner radius
+	local InputCorner = Instance.new("UICorner")
+	InputCorner.CornerRadius = UDim.new(0, 8)
+	InputCorner.Parent = KeyInput
+	
+	-- Key Input stroke
+	local InputStroke = Instance.new("UIStroke")
+	InputStroke.Color = Theme.Outline
+	InputStroke.Thickness = 1
+	InputStroke.Parent = KeyInput
+	
+	-- Submit Button
+	local SubmitButton = Instance.new("TextButton")
+	SubmitButton.Name = "SubmitButton"
+	SubmitButton.Size = UDim2.new(0, 100, 0, 35)
+	SubmitButton.Position = UDim2.new(0, 20, 0, 160)
+	SubmitButton.BackgroundColor3 = Theme.PurpleGradient
+	SubmitButton.Text = "Submit"
+	SubmitButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+	SubmitButton.TextSize = 14
+	SubmitButton.Font = Enum.Font.GothamBold
+	SubmitButton.ZIndex = 1001
+	SubmitButton.Parent = KeyFrame
+	
+	-- Submit Button corner radius
+	local ButtonCorner = Instance.new("UICorner")
+	ButtonCorner.CornerRadius = UDim.new(0, 8)
+	ButtonCorner.Parent = SubmitButton
+	
+	-- Get Key Button (if KeyUrl is provided)
+	local GetKeyButton
+	if Settings.KeyUrl then
+		GetKeyButton = Instance.new("TextButton")
+		GetKeyButton.Name = "GetKeyButton"
+		GetKeyButton.Size = UDim2.new(0, 100, 0, 35)
+		GetKeyButton.Position = UDim2.new(0, 130, 0, 160)
+		GetKeyButton.BackgroundColor3 = Theme.Component
+		GetKeyButton.Text = "Get Key"
+		GetKeyButton.TextColor3 = Theme.Title
+		GetKeyButton.TextSize = 14
+		GetKeyButton.Font = Enum.Font.GothamBold
+		GetKeyButton.ZIndex = 1001
+		GetKeyButton.Parent = KeyFrame
+		
+		-- Get Key Button corner radius
+		local GetKeyCorner = Instance.new("UICorner")
+		GetKeyCorner.CornerRadius = UDim.new(0, 8)
+		GetKeyCorner.Parent = GetKeyButton
+		
+		-- Get Key Button stroke
+		local GetKeyStroke = Instance.new("UIStroke")
+		GetKeyStroke.Color = Theme.Outline
+		GetKeyStroke.Thickness = 1
+		GetKeyStroke.Parent = GetKeyButton
+		
+		Connect(GetKeyButton.MouseButton1Click, function()
+			if setclipboard then
+				setclipboard(Settings.KeyUrl)
+				GetKeyButton.Text = "Copied!"
+				task.wait(2)
+				GetKeyButton.Text = "Get Key"
+			end
+		end)
+	end
+	
+	-- Status Label
+	local StatusLabel = Instance.new("TextLabel")
+	StatusLabel.Name = "StatusLabel"
+	StatusLabel.Size = UDim2.new(1, -40, 0, 20)
+	StatusLabel.Position = UDim2.new(0, 20, 0, 210)
+	StatusLabel.BackgroundTransparency = 1
+	StatusLabel.Text = ""
+	StatusLabel.TextColor3 = Color3.fromRGB(220, 53, 69)
+	StatusLabel.TextSize = 11
+	StatusLabel.Font = Enum.Font.Gotham
+	StatusLabel.TextXAlignment = Enum.TextXAlignment.Left
+	StatusLabel.ZIndex = 1001
+	StatusLabel.Parent = KeyFrame
+	
+	-- Validation function
+	local function ValidateKey()
+		local inputKey = KeyInput.Text
+		local correctKey
+		
+		if Settings.KeyUrl then
+			-- Fetch key from URL (simplified - in real implementation you'd use HttpService)
+			correctKey = Settings.Key or "testkey" -- Fallback to Settings.Key
+		else
+			correctKey = Settings.Key
+		end
+		
+		if inputKey == correctKey then
+			StatusLabel.Text = "✓ Key accepted! Loading interface..."
+			StatusLabel.TextColor3 = Color3.fromRGB(40, 167, 69)
+			
+			task.wait(1)
+			
+			-- Close key system
+			Tween(KeyFrame, 0.3, { GroupTransparency = 1 })
+			task.wait(0.3)
+			KeyFrame:Destroy()
+			
+			-- Call success callback
+			OnSuccess()
+		else
+			StatusLabel.Text = "✗ Invalid key. Please try again."
+			StatusLabel.TextColor3 = Color3.fromRGB(220, 53, 69)
+			
+			-- Shake animation
+			local originalPos = KeyInput.Position
+			for i = 1, 3 do
+				Tween(KeyInput, 0.1, { Position = originalPos + UDim2.new(0, 5, 0, 0) })
+				task.wait(0.1)
+				Tween(KeyInput, 0.1, { Position = originalPos + UDim2.new(0, -5, 0, 0) })
+				task.wait(0.1)
+			end
+			Tween(KeyInput, 0.1, { Position = originalPos })
+		end
+	end
+	
+	-- Connect events
+	Connect(SubmitButton.MouseButton1Click, ValidateKey)
+	Connect(KeyInput.FocusLost, function(enterPressed)
+		if enterPressed then
+			ValidateKey()
+		end
+	end)
+	
+	-- Show key system with animation
+	Animations:Open(KeyFrame, 0, true)
+	
+	return KeyFrame
 end
 
 --// Function to create mobile minimize button
@@ -390,7 +688,19 @@ end
 
 --// Library [Window]
 
-function Library:CreateWindow(Settings: { Title: string, Size: UDim2, Transparency: number, MinimizeKeybind: Enum.KeyCode?, Blurring: boolean, Theme: string })
+function Library:CreateWindow(Settings: { Title: string, Size: UDim2, Transparency: number, MinimizeKeybind: Enum.KeyCode?, Blurring: boolean, Theme: string, KeySystem: boolean?, Key: string?, KeyUrl: string? })
+	-- Key System Check
+	if Settings.KeySystem then
+		local KeySystemCompleted = false
+		
+		CreateKeySystemUI(Settings, function()
+			KeySystemCompleted = true
+		end)
+		
+		-- Wait for key system completion
+		repeat task.wait() until KeySystemCompleted
+	end
+	
 	local Window = Clone(Screen:WaitForChild("Main"));
 	local Sidebar = Window:FindFirstChild("Sidebar");
 	local Holder = Window:FindFirstChild("Main");
@@ -402,6 +712,7 @@ function Library:CreateWindow(Settings: { Title: string, Size: UDim2, Transparen
 	local Opened = true;
 	local Maximized = false;
 	local BlurEnabled = false
+	local FloatingButton
 
 	for Index, Example in next, Window:GetDescendants() do
 		if Example.Name:find("Example") and not Examples[Example.Name] then
@@ -439,15 +750,34 @@ function Library:CreateWindow(Settings: { Title: string, Size: UDim2, Transparen
 			Opened = false
 			Animations:Close(Window)
 			Window.Visible = false
+			
+			-- Show floating button
+			if FloatingButton then
+				FloatingButton.Visible = true
+				Tween(FloatingButton, 0.3, { BackgroundTransparency = 0.1 })
+			end
 		else
 			Animations:Open(Window, Setup.Transparency)
 			Opened = true
+			
+			-- Hide floating button
+			if FloatingButton then
+				Tween(FloatingButton, 0.3, { BackgroundTransparency = 1 })
+				task.wait(0.3)
+				FloatingButton.Visible = false
+			end
 
 			if BlurEnabled then
 				Blurs[Settings.Title].root.Parent = workspace.CurrentCamera
 			end
 		end
 	end
+
+	-- Create floating open button
+	FloatingButton = CreateFloatingOpenButton(Close)
+
+	-- Add improved close button
+	CreateImprovedCloseButton(Window, Close)
 
 	-- Add mobile minimize button
 	CreateMobileMinimizeButton(Window, Close)
@@ -473,6 +803,12 @@ function Library:CreateWindow(Settings: { Title: string, Size: UDim2, Transparen
 					Window.Visible = false
 					if BlurEnabled then
 						Blurs[Settings.Title].root.Parent = nil
+					end
+					
+					-- Show floating button
+					if FloatingButton then
+						FloatingButton.Visible = true
+						Tween(FloatingButton, 0.3, { BackgroundTransparency = 0.1 })
 					end
 				end
 			end)
