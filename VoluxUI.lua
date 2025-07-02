@@ -41,6 +41,9 @@ local Theme = { --// (Dark Theme)
 
 	--// Image:
 	Icon = Color3.fromRGB(220, 220, 220),
+	
+	--// Gradient:
+	PurpleGradient = Color3.fromRGB(120, 100, 180),
 }
 
 --// Services & Functions
@@ -228,6 +231,55 @@ local StoredInfo = {
 	["Tabs"] = {}
 };
 
+--// Function to create purple gradient overlay
+local function CreatePurpleGradient(Window)
+	local GradientFrame = Instance.new("Frame")
+	GradientFrame.Name = "PurpleGradient"
+	GradientFrame.Size = UDim2.new(1, 0, 1, 0)
+	GradientFrame.Position = UDim2.new(0, 0, 0, 0)
+	GradientFrame.BackgroundTransparency = 1
+	GradientFrame.ZIndex = 1
+	GradientFrame.Parent = Window
+	
+	local UIGradient = Instance.new("UIGradient")
+	UIGradient.Transparency = NumberSequence.new({
+		NumberSequenceKeypoint.new(0, 1),
+		NumberSequenceKeypoint.new(0.27, 0.85),
+		NumberSequenceKeypoint.new(0.73, 0.7),
+		NumberSequenceKeypoint.new(0.83, 0.9),
+		NumberSequenceKeypoint.new(1, 1)
+	})
+	UIGradient.Color = ColorSequence.new({
+		ColorSequenceKeypoint.new(0, Theme.PurpleGradient),
+		ColorSequenceKeypoint.new(1, Theme.PurpleGradient)
+	})
+	UIGradient.Rotation = 180
+	UIGradient.Parent = GradientFrame
+	
+	GradientFrame.BackgroundColor3 = Theme.PurpleGradient
+	
+	return GradientFrame
+end
+
+--// Function to create branding text
+local function CreateBrandingText(Window)
+	local BrandingLabel = Instance.new("TextLabel")
+	BrandingLabel.Name = "BrandingText"
+	BrandingLabel.Size = UDim2.new(0, 200, 0, 20)
+	BrandingLabel.Position = UDim2.new(0, 10, 1, -25)
+	BrandingLabel.BackgroundTransparency = 1
+	BrandingLabel.Text = "VoluxUI By VTriP Syntary"
+	BrandingLabel.TextColor3 = Color3.fromRGB(150, 150, 150)
+	BrandingLabel.TextSize = 10
+	BrandingLabel.TextXAlignment = Enum.TextXAlignment.Left
+	BrandingLabel.TextYAlignment = Enum.TextYAlignment.Bottom
+	BrandingLabel.Font = Enum.Font.Gotham
+	BrandingLabel.ZIndex = 10
+	BrandingLabel.Parent = Window
+	
+	return BrandingLabel
+end
+
 --// Animations [Window]
 function Animations:Open(Window: CanvasGroup, Transparency: number, UseCurrentSize: boolean)
 	local Original = (UseCurrentSize and Window.Size) or Setup.Size
@@ -315,6 +367,10 @@ function Library:CreateWindow(Settings: { Title: string, Size: UDim2, Transparen
 	Setup.Transparency = Settings.Transparency or 0
 	Setup.Size = Settings.Size
 	Setup.ThemeMode = Settings.Theme or "Dark"
+
+	--// Add purple gradient and branding
+	CreatePurpleGradient(Window)
+	CreateBrandingText(Window)
 
 	if Settings.Blurring then
 		Blurs[Settings.Title] = Blur.new(Window, 5)
