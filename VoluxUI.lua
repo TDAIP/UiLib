@@ -1,6 +1,6 @@
 --[[
 	User Interface Library
-	Made by VoluxUI
+	Made by VoluxUI V2
 ]]
 
 --// Connections
@@ -114,7 +114,16 @@ local Drag = function(Canvas)
 			Canvas.Position = UDim2.new(StartPosition.X.Scale, StartPosition.X.Offset + delta.X, StartPosition.Y.Scale, StartPosition.Y.Offset + delta.Y)
 		end
 
-		Connect(Canvas.InputBegan, function(Input)
+		-- Create larger drag area for mobile
+		local DragArea = Instance.new("Frame")
+		DragArea.Name = "DragArea"
+		DragArea.Size = UDim2.new(1, 0, 0, 60) -- Larger drag area
+		DragArea.Position = UDim2.new(0, 0, 0, 0)
+		DragArea.BackgroundTransparency = 1
+		DragArea.ZIndex = 100
+		DragArea.Parent = Canvas
+
+		Connect(DragArea.InputBegan, function(Input)
 			if Input.UserInputType == Enum.UserInputType.MouseButton1 or Input.UserInputType == Enum.UserInputType.Touch and not Type then
 				Dragging = true
 				Start = Input.Position
@@ -128,7 +137,7 @@ local Drag = function(Canvas)
 			end
 		end)
 
-		Connect(Canvas.InputChanged, function(Input)
+		Connect(DragArea.InputChanged, function(Input)
 			if Input.UserInputType == Enum.UserInputType.MouseMovement or Input.UserInputType == Enum.UserInputType.Touch and not Type then
 				DragInput = Input
 			end
@@ -237,26 +246,25 @@ local function CreatePurpleGradient(Window)
 	GradientFrame.Name = "PurpleGradient"
 	GradientFrame.Size = UDim2.new(1, 0, 1, 0)
 	GradientFrame.Position = UDim2.new(0, 0, 0, 0)
-	GradientFrame.BackgroundTransparency = 1
+	GradientFrame.BackgroundColor3 = Theme.PurpleGradient
+	GradientFrame.BackgroundTransparency = 0.3 -- Make it more visible
 	GradientFrame.ZIndex = 1
 	GradientFrame.Parent = Window
 	
 	local UIGradient = Instance.new("UIGradient")
 	UIGradient.Transparency = NumberSequence.new({
-		NumberSequenceKeypoint.new(0, 1),
-		NumberSequenceKeypoint.new(0.27, 0.85),
-		NumberSequenceKeypoint.new(0.73, 0.7),
-		NumberSequenceKeypoint.new(0.83, 0.9),
+		NumberSequenceKeypoint.new(0, 0.9), -- Start more visible
+		NumberSequenceKeypoint.new(0.27, 0.7),
+		NumberSequenceKeypoint.new(0.73, 0.4),
+		NumberSequenceKeypoint.new(0.83, 0.8),
 		NumberSequenceKeypoint.new(1, 1)
 	})
 	UIGradient.Color = ColorSequence.new({
 		ColorSequenceKeypoint.new(0, Theme.PurpleGradient),
 		ColorSequenceKeypoint.new(1, Theme.PurpleGradient)
 	})
-	UIGradient.Rotation = 47 -- 47 degree angle
+	UIGradient.Rotation = 180
 	UIGradient.Parent = GradientFrame
-	
-	GradientFrame.BackgroundColor3 = Theme.PurpleGradient
 	
 	return GradientFrame
 end
@@ -280,203 +288,44 @@ local function CreateBrandingText(Window)
 	return BrandingLabel
 end
 
---// Function to create open button
-local function CreateOpenButton(WindowTitle, OpenCallback)
-	local OpenButton = Instance.new("TextButton")
-	OpenButton.Name = "VoluxUIOpenButton"
-	OpenButton.Size = UDim2.new(0, 150, 0, 35)
-	OpenButton.Position = UDim2.new(0.5, -75, 0, 10)
-	OpenButton.BackgroundColor3 = Theme.Primary
-	OpenButton.BorderSizePixel = 0
-	OpenButton.Text = "Open VoluxUI 2"
-	OpenButton.TextColor3 = Theme.Title
-	OpenButton.TextSize = 12
-	OpenButton.Font = Enum.Font.GothamBold
-	OpenButton.Visible = false
+--// Function to create mobile minimize button
+local function CreateMobileMinimizeButton(Window, CloseFunction)
+	local MobileButton = Instance.new("TextButton")
+	MobileButton.Name = "MobileMinimize"
+	MobileButton.Size = UDim2.new(0, 40, 0, 40)
+	MobileButton.Position = UDim2.new(1, -50, 0, 10)
+	MobileButton.BackgroundColor3 = Theme.Component
+	MobileButton.BackgroundTransparency = 0.3
+	MobileButton.Text = "—"
+	MobileButton.TextColor3 = Theme.Title
+	MobileButton.TextSize = 20
+	MobileButton.Font = Enum.Font.GothamBold
+	MobileButton.ZIndex = 101
+	MobileButton.Parent = Window
 	
-	-- Create rounded corners
+	-- Add corner radius
 	local UICorner = Instance.new("UICorner")
-	UICorner.CornerRadius = UDim.new(0, 18)
-	UICorner.Parent = OpenButton
+	UICorner.CornerRadius = UDim.new(0, 8)
+	UICorner.Parent = MobileButton
 	
-	-- Create stroke
+	-- Add stroke
 	local UIStroke = Instance.new("UIStroke")
 	UIStroke.Color = Theme.Outline
 	UIStroke.Thickness = 1
-	UIStroke.Parent = OpenButton
+	UIStroke.Parent = MobileButton
 	
-	-- Add to screen
-	OpenButton.Parent = Screen
+	-- Animation
+	Connect(MobileButton.MouseButton1Click, CloseFunction)
 	
-	-- Animation effects
-	Connect(OpenButton.MouseEnter, function()
-		Tween(OpenButton, 0.2, { BackgroundColor3 = Color(Theme.Primary, 10) })
+	Connect(MobileButton.InputBegan, function()
+		Tween(MobileButton, 0.2, { BackgroundTransparency = 0.1 })
 	end)
 	
-	Connect(OpenButton.MouseLeave, function()
-		Tween(OpenButton, 0.2, { BackgroundColor3 = Theme.Primary })
+	Connect(MobileButton.InputEnded, function()
+		Tween(MobileButton, 0.2, { BackgroundTransparency = 0.3 })
 	end)
 	
-	Connect(OpenButton.MouseButton1Click, function()
-		OpenButton.Visible = false
-		OpenCallback()
-	end)
-	
-	return OpenButton
-end
-
---// Function to create Key System UI
-local function CreateKeySystemUI(Settings, OnSuccess)
-	local KeyFrame = Instance.new("CanvasGroup")
-	KeyFrame.Name = "KeySystem"
-	KeyFrame.Size = UDim2.new(0, 350, 0, 200)
-	KeyFrame.Position = UDim2.new(0.5, -175, 0.5, -100)
-	KeyFrame.BackgroundColor3 = Theme.Primary
-	KeyFrame.BorderSizePixel = 0
-	KeyFrame.GroupTransparency = 1
-	KeyFrame.Visible = false
-	KeyFrame.Parent = Screen
-	
-	-- Create rounded corners
-	local UICorner = Instance.new("UICorner")
-	UICorner.CornerRadius = UDim.new(0, 8)
-	UICorner.Parent = KeyFrame
-	
-	-- Create stroke
-	local UIStroke = Instance.new("UIStroke")
-	UIStroke.Color = Theme.Shadow
-	UIStroke.Thickness = 2
-	UIStroke.Parent = KeyFrame
-	
-	-- Title
-	local Title = Instance.new("TextLabel")
-	Title.Name = "Title"
-	Title.Size = UDim2.new(1, 0, 0, 40)
-	Title.Position = UDim2.new(0, 0, 0, 0)
-	Title.BackgroundTransparency = 1
-	Title.Text = "Key System - " .. (Settings.Title or "VoluxUI")
-	Title.TextColor3 = Theme.Title
-	Title.TextSize = 16
-	Title.Font = Enum.Font.GothamBold
-	Title.TextXAlignment = Enum.TextXAlignment.Center
-	Title.Parent = KeyFrame
-	
-	-- Description
-	local Description = Instance.new("TextLabel")
-	Description.Name = "Description"
-	Description.Size = UDim2.new(1, -20, 0, 30)
-	Description.Position = UDim2.new(0, 10, 0, 45)
-	Description.BackgroundTransparency = 1
-	Description.Text = "Please enter the key to access the interface"
-	Description.TextColor3 = Theme.Description
-	Description.TextSize = 12
-	Description.Font = Enum.Font.Gotham
-	Description.TextXAlignment = Enum.TextXAlignment.Center
-	Description.TextWrapped = true
-	Description.Parent = KeyFrame
-	
-	-- Key Input
-	local KeyInput = Instance.new("TextBox")
-	KeyInput.Name = "KeyInput"
-	KeyInput.Size = UDim2.new(1, -40, 0, 35)
-	KeyInput.Position = UDim2.new(0, 20, 0, 85)
-	KeyInput.BackgroundColor3 = Theme.Component
-	KeyInput.BorderSizePixel = 0
-	KeyInput.Text = ""
-	KeyInput.PlaceholderText = "Enter key here..."
-	KeyInput.TextColor3 = Theme.Title
-	KeyInput.PlaceholderColor3 = Theme.Description
-	KeyInput.TextSize = 12
-	KeyInput.Font = Enum.Font.Gotham
-	KeyInput.TextXAlignment = Enum.TextXAlignment.Center
-	KeyInput.Parent = KeyFrame
-	
-	-- Input rounded corners
-	local InputCorner = Instance.new("UICorner")
-	InputCorner.CornerRadius = UDim.new(0, 6)
-	InputCorner.Parent = KeyInput
-	
-	-- Submit Button
-	local SubmitButton = Instance.new("TextButton")
-	SubmitButton.Name = "SubmitButton"
-	SubmitButton.Size = UDim2.new(0, 100, 0, 30)
-	SubmitButton.Position = UDim2.new(0.5, -50, 0, 140)
-	SubmitButton.BackgroundColor3 = Theme.PurpleGradient
-	SubmitButton.BorderSizePixel = 0
-	SubmitButton.Text = "Submit"
-	SubmitButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-	SubmitButton.TextSize = 12
-	SubmitButton.Font = Enum.Font.GothamBold
-	SubmitButton.Parent = KeyFrame
-	
-	-- Submit button rounded corners
-	local SubmitCorner = Instance.new("UICorner")
-	SubmitCorner.CornerRadius = UDim.new(0, 6)
-	SubmitCorner.Parent = SubmitButton
-	
-	-- Error Label
-	local ErrorLabel = Instance.new("TextLabel")
-	ErrorLabel.Name = "ErrorLabel"
-	ErrorLabel.Size = UDim2.new(1, -20, 0, 20)
-	ErrorLabel.Position = UDim2.new(0, 10, 0, 175)
-	ErrorLabel.BackgroundTransparency = 1
-	ErrorLabel.Text = ""
-	ErrorLabel.TextColor3 = Color3.fromRGB(255, 100, 100)
-	ErrorLabel.TextSize = 10
-	ErrorLabel.Font = Enum.Font.Gotham
-	ErrorLabel.TextXAlignment = Enum.TextXAlignment.Center
-	ErrorLabel.Parent = KeyFrame
-	
-	-- Submit function
-	local function SubmitKey()
-		local EnteredKey = KeyInput.Text
-		local CorrectKey = Settings.Key
-		
-		-- If KeyUrl is provided, fetch key from URL
-		if Settings.KeyUrl then
-			local success, response = pcall(function()
-				return game:HttpGet(Settings.KeyUrl)
-			end)
-			if success then
-				CorrectKey = response:gsub("%s+", "") -- Remove whitespace
-			end
-		end
-		
-		if EnteredKey == CorrectKey then
-			-- Correct key
-			Animations:Close(KeyFrame)
-			task.wait(0.3)
-			KeyFrame:Destroy()
-			OnSuccess()
-		else
-			-- Wrong key
-			ErrorLabel.Text = "Invalid key! Please try again."
-			Tween(KeyInput, 0.1, { BackgroundColor3 = Color3.fromRGB(80, 40, 40) })
-			task.wait(0.1)
-			Tween(KeyInput, 0.2, { BackgroundColor3 = Theme.Component })
-			task.wait(2)
-			ErrorLabel.Text = ""
-		end
-	end
-	
-	-- Button events
-	Connect(SubmitButton.MouseButton1Click, SubmitKey)
-	Connect(KeyInput.FocusLost, function(enterPressed)
-		if enterPressed then
-			SubmitKey()
-		end
-	end)
-	
-	-- Button hover effects
-	Connect(SubmitButton.MouseEnter, function()
-		Tween(SubmitButton, 0.2, { BackgroundColor3 = Color(Theme.PurpleGradient, 20) })
-	end)
-	
-	Connect(SubmitButton.MouseLeave, function()
-		Tween(SubmitButton, 0.2, { BackgroundColor3 = Theme.PurpleGradient })
-	end)
-	
-	return KeyFrame
+	return MobileButton
 end
 
 --// Animations [Window]
@@ -541,7 +390,7 @@ end
 
 --// Library [Window]
 
-function Library:CreateWindow(Settings: { Title: string, Size: UDim2, Transparency: number, MinimizeKeybind: Enum.KeyCode?, Blurring: boolean, Theme: string, KeySystem: boolean?, Key: string?, KeyUrl: string? })
+function Library:CreateWindow(Settings: { Title: string, Size: UDim2, Transparency: number, MinimizeKeybind: Enum.KeyCode?, Blurring: boolean, Theme: string })
 	local Window = Clone(Screen:WaitForChild("Main"));
 	local Sidebar = Window:FindFirstChild("Sidebar");
 	local Holder = Window:FindFirstChild("Main");
@@ -553,7 +402,6 @@ function Library:CreateWindow(Settings: { Title: string, Size: UDim2, Transparen
 	local Opened = true;
 	local Maximized = false;
 	local BlurEnabled = false
-	local OpenButton = nil
 
 	for Index, Example in next, Window:GetDescendants() do
 		if Example.Name:find("Example") and not Examples[Example.Name] then
@@ -581,39 +429,6 @@ function Library:CreateWindow(Settings: { Title: string, Size: UDim2, Transparen
 		Setup.Keybind = Settings.MinimizeKeybind
 	end
 
-	--// Modify close button size and position
-	local CloseButton = Sidebar.Top.Buttons:FindFirstChild("Close")
-	if CloseButton then
-		CloseButton.Size = UDim2.new(0, 20, 0, 20) -- Smaller size
-		CloseButton.Position = UDim2.new(1, -30, 0, 10) -- Centered position with equal margins
-	end
-
-	--// Create open button
-	OpenButton = CreateOpenButton(Settings.Title, function()
-		if not Opened then
-			Animations:Open(Window, Setup.Transparency)
-			Opened = true
-
-			if BlurEnabled then
-				Blurs[Settings.Title].root.Parent = workspace.CurrentCamera
-			end
-		end
-	end)
-
-	--// Key System Implementation
-	local function ShowMainWindow()
-		SetProperty(Window, { Size = Settings.Size, Visible = true, Parent = Screen });
-		Animations:Open(Window, Settings.Transparency or 0)
-	end
-
-	if Settings.KeySystem then
-		local KeyUI = CreateKeySystemUI(Settings, ShowMainWindow)
-		KeyUI.Visible = true
-		Animations:Open(KeyUI, 0, true)
-	else
-		ShowMainWindow()
-	end
-
 	--// Animate
 	local Close = function()
 		if Opened then
@@ -624,26 +439,18 @@ function Library:CreateWindow(Settings: { Title: string, Size: UDim2, Transparen
 			Opened = false
 			Animations:Close(Window)
 			Window.Visible = false
-			
-			-- Show open button when window is closed
-			if OpenButton then
-				OpenButton.Visible = true
-				Tween(OpenButton, 0.3, { Position = UDim2.new(0.5, -75, 0, 10) })
-			end
 		else
 			Animations:Open(Window, Setup.Transparency)
 			Opened = true
-			
-			-- Hide open button when window is opened
-			if OpenButton then
-				OpenButton.Visible = false
-			end
 
 			if BlurEnabled then
 				Blurs[Settings.Title].root.Parent = workspace.CurrentCamera
 			end
 		end
 	end
+
+	-- Add mobile minimize button
+	CreateMobileMinimizeButton(Window, Close)
 
 	for Index, Button in next, Sidebar.Top.Buttons:GetChildren() do
 		if Button:IsA("TextButton") then
@@ -666,12 +473,6 @@ function Library:CreateWindow(Settings: { Title: string, Size: UDim2, Transparen
 					Window.Visible = false
 					if BlurEnabled then
 						Blurs[Settings.Title].root.Parent = nil
-					end
-					
-					-- Show open button when minimized
-					if OpenButton then
-						OpenButton.Visible = true
-						Tween(OpenButton, 0.3, { Position = UDim2.new(0.5, -75, 0, 10) })
 					end
 				end
 			end)
@@ -1300,6 +1101,9 @@ function Library:CreateWindow(Settings: { Title: string, Size: UDim2, Transparen
 			warn("Tried to change a setting that doesn't exist or isn't available to change.")
 		end
 	end
+
+	SetProperty(Window, { Size = Settings.Size, Visible = true, Parent = Screen });
+	Animations:Open(Window, Settings.Transparency or 0)
 
 	return Options
 end
