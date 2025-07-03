@@ -1,7 +1,7 @@
 --[[
 	SiriusUI - Complete UI Library
 	Advanced Cheat Menu Library with Modern Design
-	Version 3.0 - Enhanced Edition
+	Version 4.0 - Mobile Enhanced Edition with Galaxy Graphics
 ]]
 
 --// Services & Core Setup
@@ -25,32 +25,39 @@ local Config = {
 	BlurIntensity = 8,
 }
 
---// Modern Dark Theme
+--// Galaxy Theme (Based on source file)
 local Theme = {
 	--// Main Colors
-	Background = Color3.fromRGB(16, 16, 20),
-	Surface = Color3.fromRGB(22, 22, 28),
-	Card = Color3.fromRGB(28, 28, 35),
-	Elevated = Color3.fromRGB(35, 35, 42),
+	Background = Color3.fromRGB(15, 15, 25),
+	Surface = Color3.fromRGB(20, 20, 35),
+	Card = Color3.fromRGB(25, 25, 40),
+	Elevated = Color3.fromRGB(30, 30, 50),
 	
 	--// Interactive Elements
-	Primary = Color3.fromRGB(88, 101, 242),
-	PrimaryHover = Color3.fromRGB(78, 91, 232),
-	Secondary = Color3.fromRGB(64, 68, 75),
+	Primary = Color3.fromRGB(138, 43, 226),
+	PrimaryHover = Color3.fromRGB(148, 53, 236),
+	Secondary = Color3.fromRGB(60, 60, 100),
 	Success = Color3.fromRGB(67, 181, 129),
 	Warning = Color3.fromRGB(250, 166, 26),
 	Error = Color3.fromRGB(237, 66, 69),
 	
 	--// Text Colors
-	TextPrimary = Color3.fromRGB(255, 255, 255),
-	TextSecondary = Color3.fromRGB(185, 187, 190),
+	TextPrimary = Color3.fromRGB(220, 220, 255),
+	TextSecondary = Color3.fromRGB(180, 180, 220),
 	TextMuted = Color3.fromRGB(142, 146, 151),
 	TextDisabled = Color3.fromRGB(96, 100, 108),
 	
 	--// Borders & Outlines
-	Border = Color3.fromRGB(45, 45, 52),
-	BorderHover = Color3.fromRGB(55, 55, 62),
+	Border = Color3.fromRGB(60, 60, 100),
+	BorderHover = Color3.fromRGB(70, 70, 110),
 	Accent = Color3.fromRGB(114, 137, 218),
+	
+	--// Galaxy Colors
+	GalaxyPurple = Color3.fromRGB(138, 43, 226),
+	GalaxyBlue = Color3.fromRGB(72, 61, 139),
+	GalaxyCyan = Color3.fromRGB(0, 191, 255),
+	GalaxyPink = Color3.fromRGB(255, 20, 147),
+	StarColor = Color3.fromRGB(255, 255, 255),
 	
 	--// Special Effects
 	Shadow = Color3.fromRGB(0, 0, 0),
@@ -127,6 +134,57 @@ local function AddListLayout(element, direction, padding)
 	}, element)
 end
 
+--// Galaxy Background Creation
+local function CreateGalaxyBackground(parent)
+	local GalaxyFrame = CreateElement("Frame", {
+		Name = "GalaxyBackground",
+		Size = UDim2.new(1, 0, 1, 0),
+		Position = UDim2.new(0, 0, 0, 0),
+		BackgroundColor3 = Theme.Background,
+		ZIndex = 1
+	}, parent)
+	
+	-- Galaxy gradient
+	local UIGradient = CreateElement("UIGradient", {
+		Color = ColorSequence.new({
+			ColorSequenceKeypoint.new(0, Theme.GalaxyPurple),
+			ColorSequenceKeypoint.new(0.3, Theme.GalaxyBlue),
+			ColorSequenceKeypoint.new(0.7, Theme.GalaxyCyan),
+			ColorSequenceKeypoint.new(1, Theme.GalaxyPink)
+		}),
+		Transparency = NumberSequence.new({
+			NumberSequenceKeypoint.new(0, 0.8),
+			NumberSequenceKeypoint.new(0.5, 0.6),
+			NumberSequenceKeypoint.new(1, 0.9)
+		}),
+		Rotation = 135
+	}, GalaxyFrame)
+	
+	-- Animated stars
+	for i = 1, 20 do
+		local Star = CreateElement("Frame", {
+			Name = "Star" .. i,
+			Size = UDim2.new(0, math.random(2, 4), 0, math.random(2, 4)),
+			Position = UDim2.new(math.random(0, 100)/100, 0, math.random(0, 100)/100, 0),
+			BackgroundColor3 = Theme.StarColor,
+			BackgroundTransparency = math.random(0, 50) / 100,
+			ZIndex = 2
+		}, GalaxyFrame)
+		
+		AddCorner(Star, 50)
+		
+		-- Twinkling animation
+		task.spawn(function()
+			while Star.Parent do
+				Tween(Star, math.random(1, 3), { BackgroundTransparency = math.random(0, 80) / 100 })
+				task.wait(math.random(1, 3))
+			end
+		end)
+	end
+	
+	return GalaxyFrame
+end
+
 --// Animation System
 local Animations = {}
 
@@ -166,7 +224,7 @@ function Animations:SlideIn(element, direction, duration)
 	Tween(element, duration or 0.4, {Position = originalPos})
 end
 
---// Drag System
+--// Enhanced Mobile-Friendly Drag System
 local function MakeDraggable(element, dragHandle)
 	local dragging = false
 	local dragStart = nil
@@ -174,16 +232,25 @@ local function MakeDraggable(element, dragHandle)
 	
 	dragHandle = dragHandle or element
 	
-	Connect(dragHandle.InputBegan, function(input)
-		if input.UserInputType == Enum.UserInputType.MouseButton1 then
+	-- Enhanced drag area for mobile
+	local DragArea = CreateElement("Frame", {
+		Name = "DragArea",
+		Size = UDim2.new(1, 0, 0, 60), -- Larger drag area for mobile
+		Position = UDim2.new(0, 0, 0, 0),
+		BackgroundTransparency = 1,
+		ZIndex = 100
+	}, dragHandle)
+	
+	local function startDrag(input)
+		if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
 			dragging = true
 			dragStart = input.Position
 			startPos = element.Position
 		end
-	end)
+	end
 	
-	Connect(dragHandle.InputChanged, function(input)
-		if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
+	local function updateDrag(input)
+		if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
 			local delta = input.Position - dragStart
 			element.Position = UDim2.new(
 				startPos.X.Scale,
@@ -192,13 +259,19 @@ local function MakeDraggable(element, dragHandle)
 				startPos.Y.Offset + delta.Y
 			)
 		end
-	end)
+	end
 	
-	Connect(dragHandle.InputEnded, function(input)
-		if input.UserInputType == Enum.UserInputType.MouseButton1 then
+	local function endDrag(input)
+		if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
 			dragging = false
 		end
-	end)
+	end
+	
+	Connect(DragArea.InputBegan, startDrag)
+	Connect(DragArea.InputChanged, updateDrag)
+	Connect(DragArea.InputEnded, endDrag)
+	Connect(Services.UserInputService.InputChanged, updateDrag)
+	Connect(Services.UserInputService.InputEnded, endDrag)
 end
 
 --// Screen Setup
@@ -225,7 +298,7 @@ function SiriusUI:CreateWindow(settings)
 	local windowTitle = settings.Title or "SiriusUI"
 	local windowSize = settings.Size or Config.Size
 	
-	--// Main Window Frame
+	--// Main Window Frame (Centered on screen)
 	local Window = CreateElement("Frame", {
 		Name = "SiriusWindow",
 		Size = windowSize,
@@ -236,99 +309,132 @@ function SiriusUI:CreateWindow(settings)
 		Visible = false
 	}, ScreenGui)
 	
-	AddCorner(Window, 12)
-	AddStroke(Window, Theme.Border, 1)
+	AddCorner(Window, 15)
+	AddStroke(Window, Theme.Border, 2)
 	
-	--// Window Shadow
+	-- Galaxy background
+	CreateGalaxyBackground(Window)
+	
+	--// Enhanced Window Shadow with Galaxy Effect
 	local Shadow = CreateElement("ImageLabel", {
 		Name = "Shadow",
-		Size = UDim2.new(1, 20, 1, 20),
-		Position = UDim2.new(0, -10, 0, -10),
+		Size = UDim2.new(1, 30, 1, 30),
+		Position = UDim2.new(0, -15, 0, -15),
 		BackgroundTransparency = 1,
 		Image = "rbxasset://textures/ui/GuiImagePlaceholder.png",
-		ImageColor3 = Theme.Shadow,
-		ImageTransparency = 0.8,
+		ImageColor3 = Theme.GalaxyPurple,
+		ImageTransparency = 0.7,
 		ZIndex = -1
 	}, Window)
 	
-	--// Title Bar
+	--// Title Bar with Galaxy Gradient
 	local TitleBar = CreateElement("Frame", {
 		Name = "TitleBar",
-		Size = UDim2.new(1, 0, 0, 40),
+		Size = UDim2.new(1, 0, 0, 45),
 		Position = UDim2.new(0, 0, 0, 0),
 		BackgroundColor3 = Theme.Surface,
-		BorderSizePixel = 0
+		BorderSizePixel = 0,
+		ZIndex = 10
 	}, Window)
 	
-	AddCorner(TitleBar, 12)
+	AddCorner(TitleBar, 15)
+	
+	-- Title bar galaxy gradient
+	local TitleGradient = CreateElement("UIGradient", {
+		Color = ColorSequence.new({
+			ColorSequenceKeypoint.new(0, Theme.GalaxyPurple),
+			ColorSequenceKeypoint.new(0.5, Theme.GalaxyBlue),
+			ColorSequenceKeypoint.new(1, Theme.GalaxyCyan)
+		}),
+		Transparency = NumberSequence.new({
+			NumberSequenceKeypoint.new(0, 0.7),
+			NumberSequenceKeypoint.new(1, 0.9)
+		}),
+		Rotation = 90
+	}, TitleBar)
 	
 	--// Title Bar Bottom Border
 	local TitleBorder = CreateElement("Frame", {
-		Size = UDim2.new(1, 0, 0, 1),
-		Position = UDim2.new(0, 0, 1, -1),
+		Size = UDim2.new(1, 0, 0, 2),
+		Position = UDim2.new(0, 0, 1, -2),
 		BackgroundColor3 = Theme.Border,
-		BorderSizePixel = 0
+		BorderSizePixel = 0,
+		ZIndex = 11
 	}, TitleBar)
 	
 	--// Window Title
 	local Title = CreateElement("TextLabel", {
 		Name = "Title",
 		Size = UDim2.new(1, -100, 1, 0),
-		Position = UDim2.new(0, 15, 0, 0),
+		Position = UDim2.new(0, 20, 0, 0),
 		BackgroundTransparency = 1,
 		Text = windowTitle,
 		TextColor3 = Theme.TextPrimary,
-		TextSize = 16,
+		TextSize = 18,
 		TextXAlignment = Enum.TextXAlignment.Left,
-		Font = Enum.Font.GothamBold
+		Font = Enum.Font.GothamBold,
+		ZIndex = 12
 	}, TitleBar)
 	
-	--// Close Button
+	--// Close Button (Enhanced)
 	local CloseButton = CreateElement("TextButton", {
 		Name = "CloseButton",
-		Size = UDim2.new(0, 30, 0, 30),
-		Position = UDim2.new(1, -35, 0, 5),
+		Size = UDim2.new(0, 25, 0, 25),
+		Position = UDim2.new(1, -35, 0, 10),
 		BackgroundColor3 = Theme.Error,
-		BackgroundTransparency = 0.9,
+		BackgroundTransparency = 1,
 		Text = "×",
 		TextColor3 = Theme.TextPrimary,
-		TextSize = 18,
+		TextSize = 16,
 		Font = Enum.Font.GothamBold,
-		BorderSizePixel = 0
+		BorderSizePixel = 0,
+		ZIndex = 12
 	}, TitleBar)
 	
 	AddCorner(CloseButton, 6)
 	
-	--// Minimize Button
+	--// Minimize Button (Enhanced)
 	local MinimizeButton = CreateElement("TextButton", {
 		Name = "MinimizeButton",
-		Size = UDim2.new(0, 30, 0, 30),
-		Position = UDim2.new(1, -70, 0, 5),
+		Size = UDim2.new(0, 25, 0, 25),
+		Position = UDim2.new(1, -65, 0, 10),
 		BackgroundColor3 = Theme.Secondary,
-		BackgroundTransparency = 0.9,
+		BackgroundTransparency = 1,
 		Text = "−",
 		TextColor3 = Theme.TextPrimary,
-		TextSize = 16,
+		TextSize = 14,
 		Font = Enum.Font.GothamBold,
-		BorderSizePixel = 0
+		BorderSizePixel = 0,
+		ZIndex = 12
 	}, TitleBar)
 	
 	AddCorner(MinimizeButton, 6)
 	
-	--// Sidebar
+	--// Sidebar with Galaxy Theme
 	local Sidebar = CreateElement("Frame", {
 		Name = "Sidebar",
-		Size = UDim2.new(0, 160, 1, -40),
-		Position = UDim2.new(0, 0, 0, 40),
+		Size = UDim2.new(0, 170, 1, -45),
+		Position = UDim2.new(0, 0, 0, 45),
 		BackgroundColor3 = Theme.Surface,
-		BorderSizePixel = 0
+		BorderSizePixel = 0,
+		ZIndex = 5
 	}, Window)
 	
+	-- Sidebar galaxy gradient
+	local SidebarGradient = CreateElement("UIGradient", {
+		Color = ColorSequence.new({
+			ColorSequenceKeypoint.new(0, Theme.Surface),
+			ColorSequenceKeypoint.new(1, Theme.Card)
+		}),
+		Rotation = 180
+	}, Sidebar)
+	
 	local SidebarBorder = CreateElement("Frame", {
-		Size = UDim2.new(0, 1, 1, 0),
-		Position = UDim2.new(1, -1, 0, 0),
+		Size = UDim2.new(0, 2, 1, 0),
+		Position = UDim2.new(1, -2, 0, 0),
 		BackgroundColor3 = Theme.Border,
-		BorderSizePixel = 0
+		BorderSizePixel = 0,
+		ZIndex = 6
 	}, Sidebar)
 	
 	--// Tab Container
@@ -337,33 +443,36 @@ function SiriusUI:CreateWindow(settings)
 		Size = UDim2.new(1, 0, 1, 0),
 		Position = UDim2.new(0, 0, 0, 0),
 		BackgroundTransparency = 1,
-		ScrollBarThickness = 4,
+		ScrollBarThickness = 6,
 		ScrollBarImageColor3 = Theme.Border,
 		BorderSizePixel = 0,
 		CanvasSize = UDim2.new(0, 0, 0, 0),
-		AutomaticCanvasSize = Enum.AutomaticSize.Y
+		AutomaticCanvasSize = Enum.AutomaticSize.Y,
+		ZIndex = 6
 	}, Sidebar)
 	
-	AddPadding(TabContainer, 8)
-	AddListLayout(TabContainer, Enum.FillDirection.Vertical, 4)
+	AddPadding(TabContainer, 10)
+	AddListLayout(TabContainer, Enum.FillDirection.Vertical, 6)
 	
 	--// Content Area
 	local ContentArea = CreateElement("Frame", {
 		Name = "ContentArea",
-		Size = UDim2.new(1, -160, 1, -40),
-		Position = UDim2.new(0, 160, 0, 40),
+		Size = UDim2.new(1, -170, 1, -45),
+		Position = UDim2.new(0, 170, 0, 45),
 		BackgroundColor3 = Theme.Background,
-		BorderSizePixel = 0
+		BorderSizePixel = 0,
+		ZIndex = 5
 	}, Window)
 	
 	--// Tab Content Container
 	local TabContentContainer = CreateElement("Frame", {
 		Name = "TabContentContainer",
 		Size = UDim2.new(1, 0, 1, 0),
-		BackgroundTransparency = 1
+		BackgroundTransparency = 1,
+		ZIndex = 5
 	}, ContentArea)
 	
-	--// Make window draggable
+	--// Make window draggable (Mobile-friendly)
 	MakeDraggable(Window, TitleBar)
 	
 	--// Window Controls
@@ -391,7 +500,7 @@ function SiriusUI:CreateWindow(settings)
 	local function MinimizeWindow()
 		isMinimized = not isMinimized
 		if isMinimized then
-			Tween(Window, 0.3, {Size = UDim2.new(0, windowSize.X.Offset, 0, 40)})
+			Tween(Window, 0.3, {Size = UDim2.new(0, windowSize.X.Offset, 0, 45)})
 			ContentArea.Visible = false
 			Sidebar.Visible = false
 		else
@@ -404,9 +513,9 @@ function SiriusUI:CreateWindow(settings)
 	Connect(CloseButton.MouseButton1Click, ToggleWindow)
 	Connect(MinimizeButton.MouseButton1Click, MinimizeWindow)
 	
-	--// Button Animations
-	Animations:Hover(CloseButton, {BackgroundTransparency = 0.7}, {BackgroundTransparency = 0.9})
-	Animations:Hover(MinimizeButton, {BackgroundTransparency = 0.7}, {BackgroundTransparency = 0.9})
+	--// Enhanced Button Animations
+	Animations:Hover(CloseButton, {BackgroundTransparency = 0.2}, {BackgroundTransparency = 1})
+	Animations:Hover(MinimizeButton, {BackgroundTransparency = 0.2}, {BackgroundTransparency = 1})
 	
 	--// Keybind Toggle
 	Connect(Services.UserInputService.InputBegan, function(input, gameProcessed)
@@ -441,37 +550,40 @@ function SiriusUI:CreateWindow(settings)
 		local tabName = settings.Name or "Tab"
 		local tabIcon = settings.Icon or "rbxasset://textures/ui/GuiImagePlaceholder.png"
 		
-		--// Tab Button
+		--// Tab Button with Galaxy Theme
 		local TabButton = CreateElement("TextButton", {
 			Name = tabName,
-			Size = UDim2.new(1, 0, 0, 36),
+			Size = UDim2.new(1, 0, 0, 40),
 			BackgroundColor3 = Theme.Card,
 			BackgroundTransparency = 1,
 			Text = "",
-			BorderSizePixel = 0
+			BorderSizePixel = 0,
+			ZIndex = 7
 		}, TabContainer)
 		
-		AddCorner(TabButton, 6)
+		AddCorner(TabButton, 8)
 		
 		--// Tab Icon
 		local TabIcon = CreateElement("ImageLabel", {
-			Size = UDim2.new(0, 20, 0, 20),
-			Position = UDim2.new(0, 12, 0.5, -10),
+			Size = UDim2.new(0, 22, 0, 22),
+			Position = UDim2.new(0, 15, 0.5, -11),
 			BackgroundTransparency = 1,
 			Image = tabIcon,
-			ImageColor3 = Theme.TextSecondary
+			ImageColor3 = Theme.TextSecondary,
+			ZIndex = 8
 		}, TabButton)
 		
 		--// Tab Label
 		local TabLabel = CreateElement("TextLabel", {
-			Size = UDim2.new(1, -44, 1, 0),
-			Position = UDim2.new(0, 40, 0, 0),
+			Size = UDim2.new(1, -50, 1, 0),
+			Position = UDim2.new(0, 45, 0, 0),
 			BackgroundTransparency = 1,
 			Text = tabName,
 			TextColor3 = Theme.TextSecondary,
-			TextSize = 14,
+			TextSize = 15,
 			TextXAlignment = Enum.TextXAlignment.Left,
-			Font = Enum.Font.Gotham
+			Font = Enum.Font.GothamSemibold,
+			ZIndex = 8
 		}, TabButton)
 		
 		--// Tab Content
@@ -479,16 +591,17 @@ function SiriusUI:CreateWindow(settings)
 			Name = tabName .. "Content",
 			Size = UDim2.new(1, 0, 1, 0),
 			BackgroundTransparency = 1,
-			ScrollBarThickness = 6,
+			ScrollBarThickness = 8,
 			ScrollBarImageColor3 = Theme.Border,
 			BorderSizePixel = 0,
 			CanvasSize = UDim2.new(0, 0, 0, 0),
 			AutomaticCanvasSize = Enum.AutomaticSize.Y,
-			Visible = false
+			Visible = false,
+			ZIndex = 6
 		}, TabContentContainer)
 		
-		AddPadding(TabContent, 16)
-		AddListLayout(TabContent, Enum.FillDirection.Vertical, 12)
+		AddPadding(TabContent, 20)
+		AddListLayout(TabContent, Enum.FillDirection.Vertical, 15)
 		
 		--// Tab Selection
 		local function SelectTab()
@@ -501,7 +614,7 @@ function SiriusUI:CreateWindow(settings)
 			end
 			
 			-- Select this tab
-			TabButton.BackgroundTransparency = 0
+			TabButton.BackgroundTransparency = 0.1
 			TabIcon.ImageColor3 = Theme.Primary
 			TabLabel.TextColor3 = Theme.TextPrimary
 			TabContent.Visible = true
@@ -512,8 +625,8 @@ function SiriusUI:CreateWindow(settings)
 		
 		--// Tab Animations
 		Animations:Hover(TabButton, 
-			{BackgroundTransparency = 0.8}, 
-			{BackgroundTransparency = WindowObject.CurrentTab == tabName and 0 or 1}
+			{BackgroundTransparency = 0.05}, 
+			{BackgroundTransparency = WindowObject.CurrentTab == tabName and 0.1 or 1}
 		)
 		
 		--// Tab Object
@@ -540,13 +653,14 @@ function SiriusUI:CreateWindow(settings)
 			
 			local Section = CreateElement("TextLabel", {
 				Name = sectionName,
-				Size = UDim2.new(1, 0, 0, 24),
+				Size = UDim2.new(1, 0, 0, 30),
 				BackgroundTransparency = 1,
 				Text = sectionName,
 				TextColor3 = Theme.TextPrimary,
-				TextSize = 16,
+				TextSize = 18,
 				TextXAlignment = Enum.TextXAlignment.Left,
-				Font = Enum.Font.GothamBold
+				Font = Enum.Font.GothamBold,
+				ZIndex = 7
 			}, TabContent)
 			
 			return Section
@@ -559,21 +673,31 @@ function SiriusUI:CreateWindow(settings)
 			
 			local Button = CreateElement("TextButton", {
 				Name = buttonText,
-				Size = UDim2.new(1, 0, 0, 36),
+				Size = UDim2.new(1, 0, 0, 40),
 				BackgroundColor3 = Theme.Primary,
 				Text = buttonText,
 				TextColor3 = Theme.TextPrimary,
-				TextSize = 14,
+				TextSize = 15,
 				Font = Enum.Font.GothamSemibold,
-				BorderSizePixel = 0
+				BorderSizePixel = 0,
+				ZIndex = 7
 			}, TabContent)
 			
-			AddCorner(Button, 6)
+			AddCorner(Button, 8)
+			
+			-- Galaxy gradient for button
+			local ButtonGradient = CreateElement("UIGradient", {
+				Color = ColorSequence.new({
+					ColorSequenceKeypoint.new(0, Theme.GalaxyPurple),
+					ColorSequenceKeypoint.new(1, Theme.GalaxyBlue)
+				}),
+				Rotation = 45
+			}, Button)
 			
 			Connect(Button.MouseButton1Click, callback)
 			
 			Animations:Hover(Button, {BackgroundColor3 = Theme.PrimaryHover}, {BackgroundColor3 = Theme.Primary})
-			Animations:Click(Button, {Size = UDim2.new(1, -4, 0, 34)}, {Size = UDim2.new(1, 0, 0, 36)})
+			Animations:Click(Button, {Size = UDim2.new(1, -4, 0, 38)}, {Size = UDim2.new(1, 0, 0, 40)})
 			
 			return Button
 		end
@@ -586,42 +710,46 @@ function SiriusUI:CreateWindow(settings)
 			
 			local ToggleFrame = CreateElement("Frame", {
 				Name = toggleText,
-				Size = UDim2.new(1, 0, 0, 36),
+				Size = UDim2.new(1, 0, 0, 40),
 				BackgroundColor3 = Theme.Card,
-				BorderSizePixel = 0
+				BorderSizePixel = 0,
+				ZIndex = 7
 			}, TabContent)
 			
-			AddCorner(ToggleFrame, 6)
+			AddCorner(ToggleFrame, 8)
 			AddStroke(ToggleFrame, Theme.Border)
 			
 			local ToggleLabel = CreateElement("TextLabel", {
-				Size = UDim2.new(1, -60, 1, 0),
-				Position = UDim2.new(0, 12, 0, 0),
+				Size = UDim2.new(1, -70, 1, 0),
+				Position = UDim2.new(0, 15, 0, 0),
 				BackgroundTransparency = 1,
 				Text = toggleText,
 				TextColor3 = Theme.TextPrimary,
-				TextSize = 14,
+				TextSize = 15,
 				TextXAlignment = Enum.TextXAlignment.Left,
-				Font = Enum.Font.Gotham
+				Font = Enum.Font.Gotham,
+				ZIndex = 8
 			}, ToggleFrame)
 			
 			local ToggleButton = CreateElement("Frame", {
-				Size = UDim2.new(0, 44, 0, 24),
-				Position = UDim2.new(1, -52, 0.5, -12),
+				Size = UDim2.new(0, 50, 0, 26),
+				Position = UDim2.new(1, -60, 0.5, -13),
 				BackgroundColor3 = defaultValue and Theme.Primary or Theme.Secondary,
-				BorderSizePixel = 0
+				BorderSizePixel = 0,
+				ZIndex = 8
 			}, ToggleFrame)
 			
-			AddCorner(ToggleButton, 12)
+			AddCorner(ToggleButton, 13)
 			
 			local ToggleCircle = CreateElement("Frame", {
-				Size = UDim2.new(0, 18, 0, 18),
-				Position = defaultValue and UDim2.new(1, -21, 0.5, -9) or UDim2.new(0, 3, 0.5, -9),
+				Size = UDim2.new(0, 20, 0, 20),
+				Position = defaultValue and UDim2.new(1, -23, 0.5, -10) or UDim2.new(0, 3, 0.5, -10),
 				BackgroundColor3 = Theme.TextPrimary,
-				BorderSizePixel = 0
+				BorderSizePixel = 0,
+				ZIndex = 9
 			}, ToggleButton)
 			
-			AddCorner(ToggleCircle, 9)
+			AddCorner(ToggleCircle, 10)
 			
 			local isToggled = defaultValue
 			
@@ -630,7 +758,7 @@ function SiriusUI:CreateWindow(settings)
 					BackgroundColor3 = isToggled and Theme.Primary or Theme.Secondary
 				})
 				Tween(ToggleCircle, 0.2, {
-					Position = isToggled and UDim2.new(1, -21, 0.5, -9) or UDim2.new(0, 3, 0.5, -9)
+					Position = isToggled and UDim2.new(1, -23, 0.5, -10) or UDim2.new(0, 3, 0.5, -10)
 				})
 				callback(isToggled)
 			end
@@ -638,7 +766,8 @@ function SiriusUI:CreateWindow(settings)
 			local ToggleClick = CreateElement("TextButton", {
 				Size = UDim2.new(1, 0, 1, 0),
 				BackgroundTransparency = 1,
-				Text = ""
+				Text = "",
+				ZIndex = 8
 			}, ToggleFrame)
 			
 			Connect(ToggleClick.MouseButton1Click, function()
@@ -661,62 +790,77 @@ function SiriusUI:CreateWindow(settings)
 			
 			local SliderFrame = CreateElement("Frame", {
 				Name = sliderText,
-				Size = UDim2.new(1, 0, 0, 56),
+				Size = UDim2.new(1, 0, 0, 65),
 				BackgroundColor3 = Theme.Card,
-				BorderSizePixel = 0
+				BorderSizePixel = 0,
+				ZIndex = 7
 			}, TabContent)
 			
-			AddCorner(SliderFrame, 6)
+			AddCorner(SliderFrame, 8)
 			AddStroke(SliderFrame, Theme.Border)
 			
 			local SliderLabel = CreateElement("TextLabel", {
-				Size = UDim2.new(1, -60, 0, 20),
-				Position = UDim2.new(0, 12, 0, 8),
+				Size = UDim2.new(1, -70, 0, 25),
+				Position = UDim2.new(0, 15, 0, 10),
 				BackgroundTransparency = 1,
 				Text = sliderText,
 				TextColor3 = Theme.TextPrimary,
-				TextSize = 14,
+				TextSize = 15,
 				TextXAlignment = Enum.TextXAlignment.Left,
-				Font = Enum.Font.Gotham
+				Font = Enum.Font.Gotham,
+				ZIndex = 8
 			}, SliderFrame)
 			
 			local SliderValue = CreateElement("TextLabel", {
-				Size = UDim2.new(0, 48, 0, 20),
-				Position = UDim2.new(1, -60, 0, 8),
+				Size = UDim2.new(0, 55, 0, 25),
+				Position = UDim2.new(1, -70, 0, 10),
 				BackgroundTransparency = 1,
 				Text = tostring(defaultValue),
 				TextColor3 = Theme.TextSecondary,
-				TextSize = 12,
+				TextSize = 13,
 				TextXAlignment = Enum.TextXAlignment.Right,
-				Font = Enum.Font.Gotham
+				Font = Enum.Font.Gotham,
+				ZIndex = 8
 			}, SliderFrame)
 			
 			local SliderTrack = CreateElement("Frame", {
-				Size = UDim2.new(1, -24, 0, 4),
-				Position = UDim2.new(0, 12, 1, -16),
+				Size = UDim2.new(1, -30, 0, 6),
+				Position = UDim2.new(0, 15, 1, -20),
 				BackgroundColor3 = Theme.Secondary,
-				BorderSizePixel = 0
+				BorderSizePixel = 0,
+				ZIndex = 8
 			}, SliderFrame)
 			
-			AddCorner(SliderTrack, 2)
+			AddCorner(SliderTrack, 3)
 			
 			local SliderFill = CreateElement("Frame", {
 				Size = UDim2.new((defaultValue - minValue) / (maxValue - minValue), 0, 1, 0),
 				Position = UDim2.new(0, 0, 0, 0),
 				BackgroundColor3 = Theme.Primary,
-				BorderSizePixel = 0
+				BorderSizePixel = 0,
+				ZIndex = 9
 			}, SliderTrack)
 			
-			AddCorner(SliderFill, 2)
+			AddCorner(SliderFill, 3)
+			
+			-- Galaxy gradient for slider fill
+			local SliderGradient = CreateElement("UIGradient", {
+				Color = ColorSequence.new({
+					ColorSequenceKeypoint.new(0, Theme.GalaxyPurple),
+					ColorSequenceKeypoint.new(1, Theme.GalaxyCyan)
+				}),
+				Rotation = 90
+			}, SliderFill)
 			
 			local SliderHandle = CreateElement("Frame", {
-				Size = UDim2.new(0, 12, 0, 12),
-				Position = UDim2.new((defaultValue - minValue) / (maxValue - minValue), -6, 0.5, -6),
+				Size = UDim2.new(0, 14, 0, 14),
+				Position = UDim2.new((defaultValue - minValue) / (maxValue - minValue), -7, 0.5, -7),
 				BackgroundColor3 = Theme.TextPrimary,
-				BorderSizePixel = 0
+				BorderSizePixel = 0,
+				ZIndex = 10
 			}, SliderTrack)
 			
-			AddCorner(SliderHandle, 6)
+			AddCorner(SliderHandle, 7)
 			
 			local currentValue = defaultValue
 			local dragging = false
@@ -727,13 +871,13 @@ function SiriusUI:CreateWindow(settings)
 				
 				SliderValue.Text = tostring(math.floor(currentValue))
 				Tween(SliderFill, 0.1, {Size = UDim2.new(percentage, 0, 1, 0)})
-				Tween(SliderHandle, 0.1, {Position = UDim2.new(percentage, -6, 0.5, -6)})
+				Tween(SliderHandle, 0.1, {Position = UDim2.new(percentage, -7, 0.5, -7)})
 				
 				callback(currentValue)
 			end
 			
 			Connect(SliderTrack.InputBegan, function(input)
-				if input.UserInputType == Enum.UserInputType.MouseButton1 then
+				if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
 					dragging = true
 					local percentage = math.clamp((Mouse.X - SliderTrack.AbsolutePosition.X) / SliderTrack.AbsoluteSize.X, 0, 1)
 					local value = minValue + (maxValue - minValue) * percentage
@@ -742,7 +886,7 @@ function SiriusUI:CreateWindow(settings)
 			end)
 			
 			Connect(Services.UserInputService.InputChanged, function(input)
-				if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
+				if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
 					local percentage = math.clamp((Mouse.X - SliderTrack.AbsolutePosition.X) / SliderTrack.AbsoluteSize.X, 0, 1)
 					local value = minValue + (maxValue - minValue) * percentage
 					UpdateSlider(value)
@@ -750,7 +894,7 @@ function SiriusUI:CreateWindow(settings)
 			end)
 			
 			Connect(Services.UserInputService.InputEnded, function(input)
-				if input.UserInputType == Enum.UserInputType.MouseButton1 then
+				if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
 					dragging = false
 				end
 			end)
@@ -769,81 +913,108 @@ function SiriusUI:CreateWindow(settings)
 			
 			local DropdownFrame = CreateElement("Frame", {
 				Name = dropdownText,
-				Size = UDim2.new(1, 0, 0, 36),
+				Size = UDim2.new(1, 0, 0, 40),
 				BackgroundColor3 = Theme.Card,
 				BorderSizePixel = 0,
-				ClipsDescendants = false
+				ClipsDescendants = false,
+				ZIndex = 7
 			}, TabContent)
 			
-			AddCorner(DropdownFrame, 6)
+			AddCorner(DropdownFrame, 8)
 			AddStroke(DropdownFrame, Theme.Border)
 			
 			local DropdownButton = CreateElement("TextButton", {
-				Size = UDim2.new(1, 0, 0, 36),
+				Size = UDim2.new(1, 0, 0, 40),
 				BackgroundTransparency = 1,
 				Text = "",
-				BorderSizePixel = 0
+				BorderSizePixel = 0,
+				ZIndex = 8
 			}, DropdownFrame)
 			
 			local DropdownLabel = CreateElement("TextLabel", {
-				Size = UDim2.new(1, -40, 1, 0),
-				Position = UDim2.new(0, 12, 0, 0),
+				Size = UDim2.new(1, -50, 1, 0),
+				Position = UDim2.new(0, 15, 0, 0),
 				BackgroundTransparency = 1,
 				Text = dropdownText,
 				TextColor3 = Theme.TextPrimary,
-				TextSize = 14,
+				TextSize = 15,
 				TextXAlignment = Enum.TextXAlignment.Left,
-				Font = Enum.Font.Gotham
+				Font = Enum.Font.Gotham,
+				ZIndex = 9
 			}, DropdownFrame)
 			
 			local DropdownArrow = CreateElement("TextLabel", {
-				Size = UDim2.new(0, 20, 1, 0),
-				Position = UDim2.new(1, -32, 0, 0),
+				Size = UDim2.new(0, 25, 1, 0),
+				Position = UDim2.new(1, -40, 0, 0),
 				BackgroundTransparency = 1,
 				Text = "▼",
 				TextColor3 = Theme.TextSecondary,
-				TextSize = 10,
+				TextSize = 12,
 				TextXAlignment = Enum.TextXAlignment.Center,
-				Font = Enum.Font.Gotham
+				Font = Enum.Font.Gotham,
+				ZIndex = 9
 			}, DropdownFrame)
 			
 			local DropdownList = CreateElement("Frame", {
 				Size = UDim2.new(1, 0, 0, 0),
-				Position = UDim2.new(0, 0, 1, 4),
+				Position = UDim2.new(0, 0, 1, 5),
 				BackgroundColor3 = Theme.Surface,
 				BorderSizePixel = 0,
 				Visible = false,
-				ZIndex = 10
+				ZIndex = 15
 			}, DropdownFrame)
 			
-			AddCorner(DropdownList, 6)
+			AddCorner(DropdownList, 8)
 			AddStroke(DropdownList, Theme.Border)
+			
+			-- Galaxy gradient for dropdown list
+			local ListGradient = CreateElement("UIGradient", {
+				Color = ColorSequence.new({
+					ColorSequenceKeypoint.new(0, Theme.Surface),
+					ColorSequenceKeypoint.new(1, Theme.Card)
+				}),
+				Rotation = 180
+			}, DropdownList)
 			
 			local DropdownScroll = CreateElement("ScrollingFrame", {
 				Size = UDim2.new(1, 0, 1, 0),
 				BackgroundTransparency = 1,
-				ScrollBarThickness = 4,
+				ScrollBarThickness = 6,
 				ScrollBarImageColor3 = Theme.Border,
 				BorderSizePixel = 0,
 				CanvasSize = UDim2.new(0, 0, 0, 0),
-				AutomaticCanvasSize = Enum.AutomaticSize.Y
+				AutomaticCanvasSize = Enum.AutomaticSize.Y,
+				ZIndex = 16
 			}, DropdownList)
 			
-			AddPadding(DropdownScroll, 4)
-			AddListLayout(DropdownScroll, Enum.FillDirection.Vertical, 2)
+			AddPadding(DropdownScroll, 5)
+			AddListLayout(DropdownScroll, Enum.FillDirection.Vertical, 3)
 			
 			local isOpen = false
 			local selectedOptions = multiSelect and {} or nil
 			local selectedSingle = nil
 			
+			-- Enhanced text display function
 			local function UpdateDropdownText()
 				if multiSelect then
 					if #selectedOptions == 0 then
 						DropdownLabel.Text = dropdownText
-					elseif #selectedOptions == 1 then
-						DropdownLabel.Text = selectedOptions[1]
 					else
-						DropdownLabel.Text = selectedOptions[1] .. " (+" .. (#selectedOptions - 1) .. ")"
+						local displayText = ""
+						for i, option in ipairs(selectedOptions) do
+							if i == 1 then
+								displayText = option
+							else
+								displayText = displayText .. "," .. option
+							end
+						end
+						
+						-- Truncate if too long
+						if #displayText > 25 then
+							displayText = string.sub(displayText, 1, 22) .. "..."
+						end
+						
+						DropdownLabel.Text = displayText
 					end
 				else
 					DropdownLabel.Text = selectedSingle or dropdownText
@@ -854,7 +1025,7 @@ function SiriusUI:CreateWindow(settings)
 				isOpen = not isOpen
 				
 				if isOpen then
-					local listHeight = math.min(#options * 32 + 8, 200)
+					local listHeight = math.min(#options * 35 + 10, 200)
 					DropdownList.Size = UDim2.new(1, 0, 0, listHeight)
 					DropdownList.Visible = true
 					Tween(DropdownArrow, 0.2, {Rotation = 180})
@@ -863,7 +1034,9 @@ function SiriusUI:CreateWindow(settings)
 					Tween(DropdownList, 0.2, {Size = UDim2.new(1, 0, 0, 0)})
 					Tween(DropdownArrow, 0.2, {Rotation = 0})
 					task.wait(0.2)
-					DropdownList.Visible = false
+					if DropdownList then
+						DropdownList.Visible = false
+					end
 				end
 			end
 			
@@ -872,29 +1045,31 @@ function SiriusUI:CreateWindow(settings)
 			-- Create option buttons
 			for _, option in ipairs(options) do
 				local OptionButton = CreateElement("TextButton", {
-					Size = UDim2.new(1, 0, 0, 28),
+					Size = UDim2.new(1, 0, 0, 32),
 					BackgroundColor3 = Theme.Card,
 					BackgroundTransparency = 1,
 					Text = option,
 					TextColor3 = Theme.TextPrimary,
-					TextSize = 13,
+					TextSize = 14,
 					TextXAlignment = Enum.TextXAlignment.Left,
 					Font = Enum.Font.Gotham,
-					BorderSizePixel = 0
+					BorderSizePixel = 0,
+					ZIndex = 17
 				}, DropdownScroll)
 				
-				AddCorner(OptionButton, 4)
-				AddPadding(OptionButton, 8)
+				AddCorner(OptionButton, 6)
+				AddPadding(OptionButton, 10)
 				
 				if multiSelect then
 					local CheckBox = CreateElement("Frame", {
-						Size = UDim2.new(0, 16, 0, 16),
-						Position = UDim2.new(1, -24, 0.5, -8),
+						Size = UDim2.new(0, 18, 0, 18),
+						Position = UDim2.new(1, -28, 0.5, -9),
 						BackgroundColor3 = Theme.Secondary,
-						BorderSizePixel = 0
+						BorderSizePixel = 0,
+						ZIndex = 18
 					}, OptionButton)
 					
-					AddCorner(CheckBox, 3)
+					AddCorner(CheckBox, 4)
 					AddStroke(CheckBox, Theme.Border)
 					
 					local CheckMark = CreateElement("TextLabel", {
@@ -902,10 +1077,11 @@ function SiriusUI:CreateWindow(settings)
 						BackgroundTransparency = 1,
 						Text = "✓",
 						TextColor3 = Theme.TextPrimary,
-						TextSize = 12,
+						TextSize = 13,
 						TextXAlignment = Enum.TextXAlignment.Center,
 						Font = Enum.Font.GothamBold,
-						Visible = false
+						Visible = false,
+						ZIndex = 19
 					}, CheckBox)
 					
 					Connect(OptionButton.MouseButton1Click, function()
@@ -933,7 +1109,7 @@ function SiriusUI:CreateWindow(settings)
 					end)
 				end
 				
-				Animations:Hover(OptionButton, {BackgroundTransparency = 0.9}, {BackgroundTransparency = 1})
+				Animations:Hover(OptionButton, {BackgroundTransparency = 0.1}, {BackgroundTransparency = 1})
 			end
 			
 			Animations:Hover(DropdownFrame, {BackgroundColor3 = Theme.Elevated}, {BackgroundColor3 = Theme.Card})
