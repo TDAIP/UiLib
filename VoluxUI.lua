@@ -1,6 +1,6 @@
 --[[
 	User Interface Library
-	Made by VoluxUI V2.1
+	Made by VoluxUI V2.1 - Galaxy Edition
 ]]
 
 --// Connections
@@ -23,27 +23,31 @@ local Setup = {
 	Size = nil,
 }
 
-local Theme = { --// (Dark Theme)
+local Theme = { --// Galaxy Theme
 	--// Frames:
-	Primary = Color3.fromRGB(30, 30, 30),
-	Secondary = Color3.fromRGB(35, 35, 35),
-	Component = Color3.fromRGB(40, 40, 40),
-	Interactables = Color3.fromRGB(45, 45, 45),
+	Primary = Color3.fromRGB(15, 15, 25),
+	Secondary = Color3.fromRGB(20, 20, 35),
+	Component = Color3.fromRGB(25, 25, 40),
+	Interactables = Color3.fromRGB(30, 30, 50),
 
 	--// Text:
-	Tab = Color3.fromRGB(200, 200, 200),
-	Title = Color3.fromRGB(240,240,240),
-	Description = Color3.fromRGB(200,200,200),
+	Tab = Color3.fromRGB(220, 220, 255),
+	Title = Color3.fromRGB(255, 255, 255),
+	Description = Color3.fromRGB(180, 180, 220),
 
 	--// Outlines:
 	Shadow = Color3.fromRGB(0, 0, 0),
-	Outline = Color3.fromRGB(40, 40, 40),
+	Outline = Color3.fromRGB(60, 60, 100),
 
 	--// Image:
-	Icon = Color3.fromRGB(220, 220, 220),
+	Icon = Color3.fromRGB(220, 220, 255),
 	
-	--// Gradient:
-	PurpleGradient = Color3.fromRGB(120, 100, 180),
+	--// Galaxy Colors:
+	GalaxyPurple = Color3.fromRGB(138, 43, 226),
+	GalaxyBlue = Color3.fromRGB(72, 61, 139),
+	GalaxyCyan = Color3.fromRGB(0, 191, 255),
+	GalaxyPink = Color3.fromRGB(255, 20, 147),
+	StarColor = Color3.fromRGB(255, 255, 255),
 }
 
 --// Services & Functions
@@ -240,33 +244,60 @@ local StoredInfo = {
 	["Tabs"] = {}
 };
 
---// Function to create purple gradient overlay with 47 degree angle
-local function CreatePurpleGradient(Window)
-	local GradientFrame = Instance.new("Frame")
-	GradientFrame.Name = "PurpleGradient"
-	GradientFrame.Size = UDim2.new(1, 0, 1, 0)
-	GradientFrame.Position = UDim2.new(0, 0, 0, 0)
-	GradientFrame.BackgroundColor3 = Theme.PurpleGradient
-	GradientFrame.BackgroundTransparency = 0.3
-	GradientFrame.ZIndex = 1
-	GradientFrame.Parent = Window
+--// Function to create galaxy background with animated stars
+local function CreateGalaxyBackground(Window)
+	-- Main galaxy gradient background
+	local GalaxyFrame = Instance.new("Frame")
+	GalaxyFrame.Name = "GalaxyBackground"
+	GalaxyFrame.Size = UDim2.new(1, 0, 1, 0)
+	GalaxyFrame.Position = UDim2.new(0, 0, 0, 0)
+	GalaxyFrame.BackgroundColor3 = Theme.Primary
+	GalaxyFrame.BackgroundTransparency = 0
+	GalaxyFrame.ZIndex = 1
+	GalaxyFrame.Parent = Window
 	
+	-- Galaxy gradient
 	local UIGradient = Instance.new("UIGradient")
-	UIGradient.Transparency = NumberSequence.new({
-		NumberSequenceKeypoint.new(0, 0.9),
-		NumberSequenceKeypoint.new(0.27, 0.7),
-		NumberSequenceKeypoint.new(0.73, 0.4),
-		NumberSequenceKeypoint.new(0.83, 0.8),
-		NumberSequenceKeypoint.new(1, 1)
-	})
 	UIGradient.Color = ColorSequence.new({
-		ColorSequenceKeypoint.new(0, Theme.PurpleGradient),
-		ColorSequenceKeypoint.new(1, Theme.PurpleGradient)
+		ColorSequenceKeypoint.new(0, Theme.GalaxyPurple),
+		ColorSequenceKeypoint.new(0.3, Theme.GalaxyBlue),
+		ColorSequenceKeypoint.new(0.7, Theme.GalaxyCyan),
+		ColorSequenceKeypoint.new(1, Theme.GalaxyPink)
 	})
-	UIGradient.Rotation = 47 -- 47 degree angle
-	UIGradient.Parent = GradientFrame
+	UIGradient.Transparency = NumberSequence.new({
+		NumberSequenceKeypoint.new(0, 0.8),
+		NumberSequenceKeypoint.new(0.5, 0.6),
+		NumberSequenceKeypoint.new(1, 0.9)
+	})
+	UIGradient.Rotation = 135
+	UIGradient.Parent = GalaxyFrame
 	
-	return GradientFrame
+	-- Create animated stars
+	for i = 1, 15 do
+		local Star = Instance.new("Frame")
+		Star.Name = "Star" .. i
+		Star.Size = UDim2.new(0, math.random(2, 4), 0, math.random(2, 4))
+		Star.Position = UDim2.new(0, math.random(0, Window.AbsoluteSize.X), 0, math.random(0, Window.AbsoluteSize.Y))
+		Star.BackgroundColor3 = Theme.StarColor
+		Star.BackgroundTransparency = math.random(0, 50) / 100
+		Star.ZIndex = 2
+		Star.Parent = GalaxyFrame
+		
+		-- Make stars circular
+		local StarCorner = Instance.new("UICorner")
+		StarCorner.CornerRadius = UDim.new(1, 0)
+		StarCorner.Parent = Star
+		
+		-- Animate star twinkling
+		task.spawn(function()
+			while Star.Parent do
+				Tween(Star, math.random(1, 3), { BackgroundTransparency = math.random(0, 80) / 100 })
+				task.wait(math.random(1, 3))
+			end
+		end)
+	end
+	
+	return GalaxyFrame
 end
 
 --// Function to create branding text
@@ -276,8 +307,8 @@ local function CreateBrandingText(Window)
 	BrandingLabel.Size = UDim2.new(0, 200, 0, 20)
 	BrandingLabel.Position = UDim2.new(0, 10, 1, -25)
 	BrandingLabel.BackgroundTransparency = 1
-	BrandingLabel.Text = "VoluxUI By VTriP Syntary"
-	BrandingLabel.TextColor3 = Color3.fromRGB(150, 150, 150)
+	BrandingLabel.Text = "VoluxUI Galaxy Edition"
+	BrandingLabel.TextColor3 = Color3.fromRGB(150, 150, 200)
 	BrandingLabel.TextSize = 10
 	BrandingLabel.TextXAlignment = Enum.TextXAlignment.Left
 	BrandingLabel.TextYAlignment = Enum.TextYAlignment.Bottom
@@ -288,41 +319,35 @@ local function CreateBrandingText(Window)
 	return BrandingLabel
 end
 
---// Function to create smaller, better positioned close button
+--// Function to create improved close button (smaller, transparent, better positioned)
 local function CreateImprovedCloseButton(Window, CloseFunction)
 	local CloseButton = Instance.new("TextButton")
 	CloseButton.Name = "ImprovedClose"
-	CloseButton.Size = UDim2.new(0, 25, 0, 25) -- Smaller size
-	CloseButton.Position = UDim2.new(1, -35, 0, 10) -- Better positioning
+	CloseButton.Size = UDim2.new(0, 20, 0, 20) -- Smaller size
+	CloseButton.Position = UDim2.new(1, -28, 0, 8) -- Closer to top-left
 	CloseButton.BackgroundColor3 = Color3.fromRGB(220, 53, 69)
-	CloseButton.BackgroundTransparency = 0.1
+	CloseButton.BackgroundTransparency = 1 -- 100% transparent
 	CloseButton.Text = "×"
 	CloseButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-	CloseButton.TextSize = 16
+	CloseButton.TextSize = 14
 	CloseButton.Font = Enum.Font.GothamBold
 	CloseButton.ZIndex = 102
 	CloseButton.Parent = Window
 	
 	-- Add corner radius
 	local UICorner = Instance.new("UICorner")
-	UICorner.CornerRadius = UDim.new(0, 6)
+	UICorner.CornerRadius = UDim.new(0, 4)
 	UICorner.Parent = CloseButton
-	
-	-- Add stroke
-	local UIStroke = Instance.new("UIStroke")
-	UIStroke.Color = Color3.fromRGB(180, 40, 55)
-	UIStroke.Thickness = 1
-	UIStroke.Parent = CloseButton
 	
 	-- Hover animations
 	Connect(CloseButton.MouseEnter, function()
-		Tween(CloseButton, 0.2, { BackgroundColor3 = Color3.fromRGB(240, 73, 89) })
-		Tween(CloseButton, 0.2, { Size = UDim2.new(0, 27, 0, 27) })
+		Tween(CloseButton, 0.2, { BackgroundTransparency = 0.2 })
+		Tween(CloseButton, 0.2, { Size = UDim2.new(0, 22, 0, 22) })
 	end)
 	
 	Connect(CloseButton.MouseLeave, function()
-		Tween(CloseButton, 0.2, { BackgroundColor3 = Color3.fromRGB(220, 53, 69) })
-		Tween(CloseButton, 0.2, { Size = UDim2.new(0, 25, 0, 25) })
+		Tween(CloseButton, 0.2, { BackgroundTransparency = 1 })
+		Tween(CloseButton, 0.2, { Size = UDim2.new(0, 20, 0, 20) })
 	end)
 	
 	Connect(CloseButton.MouseButton1Click, CloseFunction)
@@ -334,49 +359,50 @@ end
 local function CreateFloatingOpenButton(OpenFunction)
 	local FloatingButton = Instance.new("TextButton")
 	FloatingButton.Name = "FloatingOpenButton"
-	FloatingButton.Size = UDim2.new(0, 150, 0, 40)
-	FloatingButton.Position = UDim2.new(0.5, -75, 0, 10) -- Top center of screen
+	FloatingButton.Size = UDim2.new(0, 160, 0, 40)
+	FloatingButton.Position = UDim2.new(0.5, -80, 0, 10)
 	FloatingButton.BackgroundColor3 = Theme.Primary
 	FloatingButton.BackgroundTransparency = 0.1
-	FloatingButton.Text = "Open VoluxUI 2"
+	FloatingButton.Text = "Open VoluxUI Galaxy"
 	FloatingButton.TextColor3 = Theme.Title
 	FloatingButton.TextSize = 12
 	FloatingButton.Font = Enum.Font.GothamBold
 	FloatingButton.ZIndex = 1000
 	FloatingButton.Visible = false
 	
-	-- Add corner radius for circular look
+	-- Add corner radius
 	local UICorner = Instance.new("UICorner")
 	UICorner.CornerRadius = UDim.new(0, 20)
 	UICorner.Parent = FloatingButton
 	
-	-- Add stroke
-	local UIStroke = Instance.new("UIStroke")
-	UIStroke.Color = Theme.Outline
-	UIStroke.Thickness = 2
-	UIStroke.Parent = FloatingButton
-	
-	-- Add gradient
+	-- Add galaxy gradient
 	local UIGradient = Instance.new("UIGradient")
 	UIGradient.Color = ColorSequence.new({
-		ColorSequenceKeypoint.new(0, Theme.PurpleGradient),
-		ColorSequenceKeypoint.new(1, Theme.Primary)
+		ColorSequenceKeypoint.new(0, Theme.GalaxyPurple),
+		ColorSequenceKeypoint.new(0.5, Theme.GalaxyBlue),
+		ColorSequenceKeypoint.new(1, Theme.GalaxyCyan)
 	})
-	UIGradient.Rotation = 47
+	UIGradient.Rotation = 45
 	UIGradient.Parent = FloatingButton
+	
+	-- Add animated stroke
+	local UIStroke = Instance.new("UIStroke")
+	UIStroke.Color = Theme.GalaxyCyan
+	UIStroke.Thickness = 2
+	UIStroke.Parent = FloatingButton
 	
 	-- Parent to screen
 	FloatingButton.Parent = Screen
 	
 	-- Hover animations
 	Connect(FloatingButton.MouseEnter, function()
-		Tween(FloatingButton, 0.3, { Size = UDim2.new(0, 160, 0, 45) })
-		Tween(FloatingButton, 0.3, { BackgroundTransparency = 0.05 })
+		Tween(FloatingButton, 0.3, { Size = UDim2.new(0, 170, 0, 45) })
+		Tween(UIStroke, 0.3, { Color = Theme.GalaxyPink })
 	end)
 	
 	Connect(FloatingButton.MouseLeave, function()
-		Tween(FloatingButton, 0.3, { Size = UDim2.new(0, 150, 0, 40) })
-		Tween(FloatingButton, 0.3, { BackgroundTransparency = 0.1 })
+		Tween(FloatingButton, 0.3, { Size = UDim2.new(0, 160, 0, 40) })
+		Tween(UIStroke, 0.3, { Color = Theme.GalaxyCyan })
 	end)
 	
 	Connect(FloatingButton.MouseButton1Click, OpenFunction)
@@ -384,12 +410,12 @@ local function CreateFloatingOpenButton(OpenFunction)
 	return FloatingButton
 end
 
---// Function to create Key System UI
+--// Function to create Galaxy Key System UI
 local function CreateKeySystemUI(Settings, OnSuccess)
 	local KeyFrame = Instance.new("CanvasGroup")
 	KeyFrame.Name = "KeySystem"
-	KeyFrame.Size = UDim2.new(0, 400, 0, 250)
-	KeyFrame.Position = UDim2.new(0.5, -200, 0.5, -125)
+	KeyFrame.Size = UDim2.new(0, 450, 0, 300)
+	KeyFrame.Position = UDim2.new(0.5, -225, 0.5, -150)
 	KeyFrame.BackgroundColor3 = Theme.Primary
 	KeyFrame.GroupTransparency = 1
 	KeyFrame.ZIndex = 1000
@@ -397,88 +423,88 @@ local function CreateKeySystemUI(Settings, OnSuccess)
 	
 	-- Add corner radius
 	local UICorner = Instance.new("UICorner")
-	UICorner.CornerRadius = UDim.new(0, 12)
+	UICorner.CornerRadius = UDim.new(0, 15)
 	UICorner.Parent = KeyFrame
+	
+	-- Add galaxy background
+	CreateGalaxyBackground(KeyFrame)
 	
 	-- Add stroke
 	local UIStroke = Instance.new("UIStroke")
-	UIStroke.Color = Theme.Shadow
+	UIStroke.Color = Theme.GalaxyCyan
 	UIStroke.Thickness = 2
 	UIStroke.Parent = KeyFrame
 	
-	-- Add gradient
-	CreatePurpleGradient(KeyFrame)
-	
-	-- Title
+	-- Title with galaxy emoji
 	local Title = Instance.new("TextLabel")
 	Title.Name = "Title"
-	Title.Size = UDim2.new(1, -40, 0, 50)
+	Title.Size = UDim2.new(1, -40, 0, 60)
 	Title.Position = UDim2.new(0, 20, 0, 20)
 	Title.BackgroundTransparency = 1
-	Title.Text = "Key System - " .. (Settings.Title or "VoluxUI")
+	Title.Text = "🌌 Galaxy Key System - " .. (Settings.Title or "VoluxUI")
 	Title.TextColor3 = Theme.Title
-	Title.TextSize = 18
+	Title.TextSize = 20
 	Title.Font = Enum.Font.GothamBold
-	Title.TextXAlignment = Enum.TextXAlignment.Left
+	Title.TextXAlignment = Enum.TextXAlignment.Center
 	Title.ZIndex = 1001
 	Title.Parent = KeyFrame
 	
 	-- Description
 	local Description = Instance.new("TextLabel")
 	Description.Name = "Description"
-	Description.Size = UDim2.new(1, -40, 0, 30)
-	Description.Position = UDim2.new(0, 20, 0, 70)
+	Description.Size = UDim2.new(1, -40, 0, 40)
+	Description.Position = UDim2.new(0, 20, 0, 80)
 	Description.BackgroundTransparency = 1
-	Description.Text = "Please enter the key to access the interface"
+	Description.Text = "✨ Enter the cosmic key to access the galaxy interface ✨"
 	Description.TextColor3 = Theme.Description
-	Description.TextSize = 12
+	Description.TextSize = 14
 	Description.Font = Enum.Font.Gotham
-	Description.TextXAlignment = Enum.TextXAlignment.Left
+	Description.TextXAlignment = Enum.TextXAlignment.Center
 	Description.ZIndex = 1001
 	Description.Parent = KeyFrame
 	
 	-- Key Input
 	local KeyInput = Instance.new("TextBox")
 	KeyInput.Name = "KeyInput"
-	KeyInput.Size = UDim2.new(1, -40, 0, 35)
-	KeyInput.Position = UDim2.new(0, 20, 0, 110)
+	KeyInput.Size = UDim2.new(1, -60, 0, 45)
+	KeyInput.Position = UDim2.new(0, 30, 0, 130)
 	KeyInput.BackgroundColor3 = Theme.Component
 	KeyInput.Text = ""
-	KeyInput.PlaceholderText = "Enter key here..."
+	KeyInput.PlaceholderText = "🔑 Enter your galaxy key..."
 	KeyInput.TextColor3 = Theme.Title
 	KeyInput.PlaceholderColor3 = Theme.Description
-	KeyInput.TextSize = 14
+	KeyInput.TextSize = 16
 	KeyInput.Font = Enum.Font.Gotham
 	KeyInput.ZIndex = 1001
 	KeyInput.Parent = KeyFrame
 	
 	-- Key Input corner radius
 	local InputCorner = Instance.new("UICorner")
-	InputCorner.CornerRadius = UDim.new(0, 8)
+	InputCorner.CornerRadius = UDim.new(0, 10)
 	InputCorner.Parent = KeyInput
 	
 	-- Key Input stroke
 	local InputStroke = Instance.new("UIStroke")
-	InputStroke.Color = Theme.Outline
-	InputStroke.Thickness = 1
+	InputStroke.Color = Theme.GalaxyBlue
+	InputStroke.Thickness = 2
 	InputStroke.Parent = KeyInput
 	
 	-- Submit Button
 	local SubmitButton = Instance.new("TextButton")
 	SubmitButton.Name = "SubmitButton"
-	SubmitButton.Size = UDim2.new(0, 100, 0, 35)
-	SubmitButton.Position = UDim2.new(0, 20, 0, 160)
-	SubmitButton.BackgroundColor3 = Theme.PurpleGradient
-	SubmitButton.Text = "Submit"
+	SubmitButton.Size = UDim2.new(0, 120, 0, 40)
+	SubmitButton.Position = UDim2.new(0, 30, 0, 190)
+	SubmitButton.BackgroundColor3 = Theme.GalaxyPurple
+	SubmitButton.Text = "🚀 Launch"
 	SubmitButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-	SubmitButton.TextSize = 14
+	SubmitButton.TextSize = 16
 	SubmitButton.Font = Enum.Font.GothamBold
 	SubmitButton.ZIndex = 1001
 	SubmitButton.Parent = KeyFrame
 	
 	-- Submit Button corner radius
 	local ButtonCorner = Instance.new("UICorner")
-	ButtonCorner.CornerRadius = UDim.new(0, 8)
+	ButtonCorner.CornerRadius = UDim.new(0, 10)
 	ButtonCorner.Parent = SubmitButton
 	
 	-- Get Key Button (if KeyUrl is provided)
@@ -486,33 +512,27 @@ local function CreateKeySystemUI(Settings, OnSuccess)
 	if Settings.KeyUrl then
 		GetKeyButton = Instance.new("TextButton")
 		GetKeyButton.Name = "GetKeyButton"
-		GetKeyButton.Size = UDim2.new(0, 100, 0, 35)
-		GetKeyButton.Position = UDim2.new(0, 130, 0, 160)
-		GetKeyButton.BackgroundColor3 = Theme.Component
-		GetKeyButton.Text = "Get Key"
-		GetKeyButton.TextColor3 = Theme.Title
-		GetKeyButton.TextSize = 14
+		GetKeyButton.Size = UDim2.new(0, 120, 0, 40)
+		GetKeyButton.Position = UDim2.new(0, 160, 0, 190)
+		GetKeyButton.BackgroundColor3 = Theme.GalaxyCyan
+		GetKeyButton.Text = "🔗 Get Key"
+		GetKeyButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+		GetKeyButton.TextSize = 16
 		GetKeyButton.Font = Enum.Font.GothamBold
 		GetKeyButton.ZIndex = 1001
 		GetKeyButton.Parent = KeyFrame
 		
 		-- Get Key Button corner radius
 		local GetKeyCorner = Instance.new("UICorner")
-		GetKeyCorner.CornerRadius = UDim.new(0, 8)
+		GetKeyCorner.CornerRadius = UDim.new(0, 10)
 		GetKeyCorner.Parent = GetKeyButton
-		
-		-- Get Key Button stroke
-		local GetKeyStroke = Instance.new("UIStroke")
-		GetKeyStroke.Color = Theme.Outline
-		GetKeyStroke.Thickness = 1
-		GetKeyStroke.Parent = GetKeyButton
 		
 		Connect(GetKeyButton.MouseButton1Click, function()
 			if setclipboard then
 				setclipboard(Settings.KeyUrl)
-				GetKeyButton.Text = "Copied!"
+				GetKeyButton.Text = "📋 Copied!"
 				task.wait(2)
-				GetKeyButton.Text = "Get Key"
+				GetKeyButton.Text = "🔗 Get Key"
 			end
 		end)
 	end
@@ -520,14 +540,14 @@ local function CreateKeySystemUI(Settings, OnSuccess)
 	-- Status Label
 	local StatusLabel = Instance.new("TextLabel")
 	StatusLabel.Name = "StatusLabel"
-	StatusLabel.Size = UDim2.new(1, -40, 0, 20)
-	StatusLabel.Position = UDim2.new(0, 20, 0, 210)
+	StatusLabel.Size = UDim2.new(1, -40, 0, 30)
+	StatusLabel.Position = UDim2.new(0, 20, 0, 250)
 	StatusLabel.BackgroundTransparency = 1
 	StatusLabel.Text = ""
 	StatusLabel.TextColor3 = Color3.fromRGB(220, 53, 69)
-	StatusLabel.TextSize = 11
+	StatusLabel.TextSize = 12
 	StatusLabel.Font = Enum.Font.Gotham
-	StatusLabel.TextXAlignment = Enum.TextXAlignment.Left
+	StatusLabel.TextXAlignment = Enum.TextXAlignment.Center
 	StatusLabel.ZIndex = 1001
 	StatusLabel.Parent = KeyFrame
 	
@@ -537,14 +557,13 @@ local function CreateKeySystemUI(Settings, OnSuccess)
 		local correctKey
 		
 		if Settings.KeyUrl then
-			-- Fetch key from URL (simplified - in real implementation you'd use HttpService)
-			correctKey = Settings.Key or "testkey" -- Fallback to Settings.Key
+			correctKey = Settings.Key or "testkey"
 		else
 			correctKey = Settings.Key
 		end
 		
 		if inputKey == correctKey then
-			StatusLabel.Text = "✓ Key accepted! Loading interface..."
+			StatusLabel.Text = "✅ Galaxy key accepted! Launching interface..."
 			StatusLabel.TextColor3 = Color3.fromRGB(40, 167, 69)
 			
 			task.wait(1)
@@ -557,7 +576,7 @@ local function CreateKeySystemUI(Settings, OnSuccess)
 			-- Call success callback
 			OnSuccess()
 		else
-			StatusLabel.Text = "✗ Invalid key. Please try again."
+			StatusLabel.Text = "❌ Invalid galaxy key. Please try again."
 			StatusLabel.TextColor3 = Color3.fromRGB(220, 53, 69)
 			
 			-- Shake animation
@@ -584,46 +603,6 @@ local function CreateKeySystemUI(Settings, OnSuccess)
 	Animations:Open(KeyFrame, 0, true)
 	
 	return KeyFrame
-end
-
---// Function to create mobile minimize button
-local function CreateMobileMinimizeButton(Window, CloseFunction)
-	local MobileButton = Instance.new("TextButton")
-	MobileButton.Name = "MobileMinimize"
-	MobileButton.Size = UDim2.new(0, 40, 0, 40)
-	MobileButton.Position = UDim2.new(1, -50, 0, 10)
-	MobileButton.BackgroundColor3 = Theme.Component
-	MobileButton.BackgroundTransparency = 0.3
-	MobileButton.Text = "—"
-	MobileButton.TextColor3 = Theme.Title
-	MobileButton.TextSize = 20
-	MobileButton.Font = Enum.Font.GothamBold
-	MobileButton.ZIndex = 101
-	MobileButton.Parent = Window
-	
-	-- Add corner radius
-	local UICorner = Instance.new("UICorner")
-	UICorner.CornerRadius = UDim.new(0, 8)
-	UICorner.Parent = MobileButton
-	
-	-- Add stroke
-	local UIStroke = Instance.new("UIStroke")
-	UIStroke.Color = Theme.Outline
-	UIStroke.Thickness = 1
-	UIStroke.Parent = MobileButton
-	
-	-- Animation
-	Connect(MobileButton.MouseButton1Click, CloseFunction)
-	
-	Connect(MobileButton.InputBegan, function()
-		Tween(MobileButton, 0.2, { BackgroundTransparency = 0.1 })
-	end)
-	
-	Connect(MobileButton.InputEnded, function()
-		Tween(MobileButton, 0.2, { BackgroundTransparency = 0.3 })
-	end)
-	
-	return MobileButton
 end
 
 --// Animations [Window]
@@ -727,8 +706,8 @@ function Library:CreateWindow(Settings: { Title: string, Size: UDim2, Transparen
 	Setup.Size = Settings.Size
 	Setup.ThemeMode = Settings.Theme or "Dark"
 
-	--// Add purple gradient and branding
-	CreatePurpleGradient(Window)
+	--// Add galaxy background and branding
+	CreateGalaxyBackground(Window)
 	CreateBrandingText(Window)
 
 	if Settings.Blurring then
@@ -776,11 +755,10 @@ function Library:CreateWindow(Settings: { Title: string, Size: UDim2, Transparen
 	-- Create floating open button
 	FloatingButton = CreateFloatingOpenButton(Close)
 
-	-- Add improved close button
+	-- Add improved close button (smaller, transparent, better positioned)
 	CreateImprovedCloseButton(Window, Close)
 
-	-- Add mobile minimize button
-	CreateMobileMinimizeButton(Window, Close)
+	-- REMOVED: Mobile minimize button (the ugly "-" button)
 
 	for Index, Button in next, Sidebar.Top.Buttons:GetChildren() do
 		if Button:IsA("TextButton") then
@@ -1009,7 +987,7 @@ function Library:CreateWindow(Settings: { Title: string, Size: UDim2, Transparen
 		
 		local Set = function(Value)
 			if Value then
-				Tween(Main,   .2, { BackgroundColor3 = Color3.fromRGB(153, 155, 255) });
+				Tween(Main,   .2, { BackgroundColor3 = Theme.GalaxyCyan });
 				Tween(Circle, .2, { BackgroundColor3 = Color3.fromRGB(255, 255, 255), Position = UDim2.new(1, -16, 0.5, 0) });
 			else
 				Tween(Main,   .2, { BackgroundColor3 = Theme.Interactables });
